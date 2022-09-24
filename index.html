@@ -1,66 +1,53 @@
-
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>V3 Favs</title>
     <link rel="icon" href="/favicon.png">
-    <style>
-    nav ul {
-      display: flex;
-      flex-wrap: wrap;
-      padding-inline-start: 10px;
-      list-style-type:none;
-    }
-    a:link {color:#000000; text-decoration:none}
-    a:visited {color:#000000; text-decoration:none}
-    a:hover {color:#000000; text-decoration:none}
-    a:active {color:#000000; text-decoration:none}
-    nav li {
-      flex: auto ;
-      margin: 0;
-      min-width:3rem;
-    }
-    </style>
-  </head>
-  <body>
-  <section>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <section>
         <h2>V3 Favs</h2>
-  </section>
-  <section id="sites">
-  </section>
-  </body>
+    </section>
+    <section id="sites">
+    </section>
+</body>
 
-  <script>
-    var sites=[
+<script>
+    const sites = [
         [['https://github.com/', 'Github'], ['https://www.oschina.net/', 'OSChina'], ['https://v2ex.com/', 'V2EX'], ['https://segmentfault.com/', '思否']],
-        [['https://www.taobao.com/', '淘宝'],['https://www.jd.com/', '京东'],['https://www.suning.com/', '苏宁'],['https://www.smzdm.com/', '什么值得买']],
-        [['https://www.bilibili.com/', '哔哩哔哩'],['http://www.iqiyi.com/', '爱奇艺'],['https://www.mgtv.com/', '芒果TV'],['https://v.qq.com/', '腾讯视频']],
-        [['https://developer.mozilla.org/', 'MDN'],['https://docs.python.org/3/', 'Py3Doc'],['https://www.djangoproject.com/', 'Django'],['http://codeigniter.org.cn/', 'Codeigniter']],
-        [['https://mirrors.tuna.tsinghua.edu.cn/', '清华开源'],['http://mirrors.163.com/', '网易开源'],['https://mirrors.cloud.tencent.com/index.html', '腾讯开源'],['https://opsx.alibaba.com/mirror', '阿里云开源']],
-        [['http://www.ccb.com/cn/home/indexv3.html', '建行'],['http://www.boc.cn/', '中行'],['http://www.icbc.com.cn/icbc/', '工行'],['http://www.abchina.com/cn/', '农行']],
-        [['https://cdn.bytedance.com/', '字节跳动CDN'], ['https://cn.vuejs.org/', 'VUEJS'], ['https://mvnrepository.com/', 'mvnrepo'], ['https://stackoverflow.com/', 'stackoverflow']],
-        [['https://poi.apache.org/index.html', 'POI'], ['https://spring.io/projects/spring-boot', 'SpringBoot'], ['https://docs.oracle.com/javase/8/docs/api/', 'JavaSE8 DOC']],
-        [['https://zm-digicol.dpm.org.cn/','故宫藏品']],
+        [['https://www.taobao.com/', '淘宝'], ['https://www.jd.com/', '京东'], ['https://www.suning.com/', '苏宁'], ['https://www.smzdm.com/', '什么值得买']],
+        [['https://www.bilibili.com/', '哔哩哔哩'], ['http://www.iqiyi.com/', '爱奇艺'], ['https://www.mgtv.com/', '芒果TV'], ['https://v.qq.com/', '腾讯视频']],
+        [['https://developer.mozilla.org/', 'MDN'], ['https://docs.python.org/3/', 'Py3Doc'], ['https://www.djangoproject.com/', 'Django'], ['http://codeigniter.org.cn/', 'codeigniter']],
+        [['https://mirrors.tuna.tsinghua.edu.cn/', '清华开源'], ['http://mirrors.163.com/', '网易开源'], ['https://mirrors.cloud.tencent.com/index.html', '腾讯开源'], ['https://opsx.alibaba.com/mirror', '阿里云开源']],
+        [['http://www.ccb.com/cn/home/indexv3.html', '建行'], ['http://www.boc.cn/', '中行'], ['http://www.icbc.com.cn/icbc/', '工行'], ['http://www.abchina.com/cn/', '农行']],
+        [['https://cdn.bytedance.com/', '字节跳动CDN'], ['https://cn.vuejs.org/', 'VUEJS'], ['https://stackoverflow.com/', 'stackoverflow']],
+        [['https://poi.apache.org/index.html', 'POI'], ['https://spring.io/projects/spring-boot', 'SpringBoot'], ['https://docs.oracle.com/javase/8/docs/api/', 'jdk8Doc'], ['https://baomidou.com/', 'MyBatis-Plus']],
         [['http://momentjs.cn/', 'moment中文'], ['https://grid.layoutit.com/', 'layoutit'], ['https://github.com/Tencent/secguide', '安全指南']],
-        [['https://bulma.io/', 'Bulma'],['https://zh-hans.reactjs.org/', 'reactjs'],['https://www.bootcss.com/', 'Bootstrap'],['https://jquery.com/', 'JQuery']],
-        [['https://nodejs.org/zh-cn/', 'Node.js'], ['http://expressjs.com/', 'express.js'], ['https://ant.design/index-cn','antd']],
+        [['https://bulma.io/', 'Bulma'], ['https://zh-hans.reactjs.org/', 'reactjs'], ['https://www.bootcss.com/', 'Bootstrap'], ['https://jquery.com/', 'JQuery']],
+        [['https://nodejs.org/zh-cn/', 'Node.js'], ['http://expressjs.com/', 'express.js'], ['https://ant.design/index-cn', 'antd']],
         [['https://www.google.cn/chrome/thank-you.html?standalone=1&statcb=1&installdataindex=empty&defaultbrowser=0', 'Chrome下载'], ['https://download.mozilla.org/?product=firefox-latest&os=win64&lang=zh-CN', 'Firefox下载']],
-    	[['https://ventoy.net/', 'Ventoy'], ['https://raw.hellogithub.com/hosts','520GitHub']],
-	    [['http://java.bejson.com/generator/','JAVA代码生成器'], ['https://www.lfd.uci.edu/~gohlke/pythonlibs/', 'PythonLib']],
-	    [['https://qwerty.kaiyi.cool/', '打字练习']]
-
+        [['https://ventoy.net/', 'Ventoy'], ['https://raw.hellogithub.com/hosts', '520GitHub']],
+        [['http://java.bejson.com/generator/', 'JAVA代码生成器'], ['https://www.lfd.uci.edu/~gohlke/pythonlibs/', 'PythonLib'], ['https://mvnrepository.com/', 'mvnrepo']],
+        [['https://qwerty.kaiyi.cool/', '打字练习'], ['https://zm-digicol.dpm.org.cn/', '故宫藏品']]
     ];
-    var htmlstr = "";
-    sites.forEach((value, index) => {
-	console.log(index, value)
-        htmlstr += '<nav><ul>';
-        value.forEach((val, idx) => {
-            htmlstr += '<li><a href="'+val[0]+'">'+val[1]+'</a></li>';
-        });
-        htmlstr += '</ul></nav>';
-    });
-    document.getElementById("sites").innerHTML = htmlstr;
-  </script>
+    const htmlParts = []
+    htmlParts.push('<div class="container">')
+    for (let rowIdx = 0, maxRow = sites.length; rowIdx < maxRow; rowIdx++) {
+        htmlParts.push('<div class="row">')
+        row = sites[rowIdx]
+        for (let colIdx = 0, maxCol = row.length; colIdx < maxCol; colIdx++) {
+            site = row[colIdx]
+            htmlParts.push(`<a class="icol" href="${site[0]}">${site[1]}</a>`)
+        }
+        htmlParts.push('</div>')
+    }
+    htmlParts.push('</div>')
+    document.getElementById("sites").innerHTML = htmlParts.join('')
+</script>
+
 </html>
