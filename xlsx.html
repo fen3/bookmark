@@ -9,10 +9,8 @@
     <link href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/layui/2.6.8/css/layui.min.css" type="text/css"
         rel="stylesheet" />
 </head>
-
 <body>
     <h1>Excel处理</h1>
-
     <div class="layui-btn-container">
         <input type="file" id="uploadFile" style="display: none" />
         <button type="button" class="layui-btn layui-btn-normal" id="selFile">选择文件</button>
@@ -24,6 +22,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script>
         layui.use(['layer', 'jquery'], function () {
+            const $ = layui.$
 			const titles = ['七级地址ID', '五级地址', '网络来源', '接入方式', '楼宇类型', '覆盖场景', '五级地址ID']
 			function genDiffTbl(head, diff){
 				rows = [`<h3>${head}</h3><table class="layui-table" lay-skin="line">`]
@@ -39,7 +38,6 @@
 				rows.push('</tbody>')
 				rows.push('</table>')
 				return rows.join('')
-				//$("#rst").html(rows.join('\n'))
 			}
             function dealXlxs(bf) {
                 const wb = XLSX.read(bf)
@@ -55,7 +53,6 @@
                 for (let j = 0, max2 = json2.length; j < max2; j++) {
                     seven2[json2[j]['七级地址ID']]=json2[j]
                 }
-                //console.log({ seven1, seven2 })
                 diff = { remove: [], modify: [], add: [] }
                 Object.keys(seven1).map(k1 => {
                     if (seven2[k1]) {
@@ -66,30 +63,23 @@
                         diff.remove.push(seven1[k1])
                     }
                 })
-
                 Object.keys(seven2).map(k2 => {
                     if (!seven1[k2]) {
                         diff.add.push(seven2[k2])
                     }
                 })
-				console.log(diff.add[0])
 				const t1 = genDiffTbl('新增', diff.add)
 				const t2 = genDiffTbl('修改', diff.modify)
 				const t3 = genDiffTbl('删除', diff.remove)
 				$("#rst").html([t1, t2, t3].join(''))
             }
-
-
-            const $ = layui.$
             $('#selFile').click(function () {
                 $("#uploadFile").click()
             })
             $("#uploadFile").change(function (evt) {
                 const reader = new FileReader()
                 const file = this.files[0]
-                // console.log({ file })
                 reader.onload = function () {
-                    // console.log({ value: reader.result })
                     dealXlxs(reader.result)
                 }
                 reader.readAsArrayBuffer(file)
@@ -97,5 +87,4 @@
         });
     </script>
 </body>
-
 </html>
