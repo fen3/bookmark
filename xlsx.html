@@ -9,11 +9,13 @@
     <link href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/layui/2.6.8/css/layui.min.css" type="text/css"
         rel="stylesheet" />
 </head>
-<body>
+<body style="padding: 2em;">
     <h1>Excel处理</h1>
     <div class="layui-btn-container">
         <input type="file" id="uploadFile" style="display: none" />
         <button type="button" class="layui-btn layui-btn-normal" id="selFile">选择文件</button>
+		<br>
+		<button type="button" class="layui-btn" id="btViewSwap">excel(点击切换)</button>
     </div>
 	<div id="rst">
 	</div>
@@ -21,7 +23,8 @@
         type="application/javascript"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script>
-        layui.use(['layer', 'jquery'], function () {
+        layui.use(['form', 'jquery'], function () {
+			let viewMode = 'excel'
             const $ = layui.$
 			const titles = ['七级地址ID', '五级地址', '网络来源', '接入方式', '楼宇类型', '覆盖场景', '五级地址ID']
 			function genDiffTbl(head, diff){
@@ -38,6 +41,51 @@
 				rows.push('</tbody>')
 				rows.push('</table>')
 				return rows.join('')
+			}
+			const s2ab = (s) => {
+				var buf = new ArrayBuffer(s.length);
+				var view = new Uint8Array(buf);
+				for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+				return buf;
+			}
+
+			const saveAs = (obj, filename) => {
+				var link = document.createElement("a");
+				link.download = filename;
+				link.href = URL.createObjectURL(obj);
+				link.click();
+				URL.revokeObjectURL(obj);
+			}
+			const exportExcel = (filename, datas) => {
+				const sheets = {}
+				const sheetnames = []
+				datas.forEach(sheet => {
+					sheets[sheet.sheetname] = XLSX.utils.aoa_to_sheet(sheet.rows)
+					sheetnames.push(sheet.sheetname)
+				})
+				const workbook = { SheetNames: sheetnames, Sheets: sheets }
+				const opts = { bookType: 'xlsx', bookSST: false, type: 'binary' }
+				const wb = XLSX.write(workbook, opts)
+				const blob = new Blob([s2ab(wb)], { type: 'application/octet-stream' })
+				saveAs(blob, filename)
+			}
+			function diff2Rows(diff){
+				const rows = [titles,]
+				diff.map(v=>{
+						const row = []
+						for(let i = 0, max = titles.length; i < max; i++){
+							row.push(v[titles[i]])
+						}
+						rows.push(row)
+				})
+				return rows
+			}
+			function exportDiffs(diffs){
+				exportExcel('结果.xlsx', [
+					{ sheetname: '新增', rows: diff2Rows(diffs.add) },
+					{ sheetname: '修改', rows: diff2Rows(diffs.modify) },
+					{ sheetname: '删除', rows: diff2Rows(diffs.remove) },
+				])
 			}
             function dealXlxs(bf) {
                 const wb = XLSX.read(bf)
@@ -68,10 +116,14 @@
                         diff.add.push(seven2[k2])
                     }
                 })
-				const t1 = genDiffTbl('新增', diff.add)
-				const t2 = genDiffTbl('修改', diff.modify)
-				const t3 = genDiffTbl('删除', diff.remove)
-				$("#rst").html([t1, t2, t3].join(''))
+				if(viewMode == 'excel'){
+					exportDiffs(diff)
+				} else {
+					const t1 = genDiffTbl('新增', diff.add)
+					const t2 = genDiffTbl('修改', diff.modify)
+					const t3 = genDiffTbl('删除', diff.remove)
+					$("#rst").html([t1, t2, t3].join(''))
+				}
             }
             $('#selFile').click(function () {
                 $("#uploadFile").click()
@@ -84,6 +136,15 @@
                 }
                 reader.readAsArrayBuffer(file)
             })
+			const btViewSwapText = {
+				'excel': 'excel(点击切换)',
+				'table': '页面(点击切换)'
+			}
+			$("#btViewSwap").click(function(){
+				viewMode = viewMode == 'excel' ? 'table' : 'excel'
+				
+				$(this).html(btViewSwapText[viewMode])
+			})
         });
     </script>
 </body>
