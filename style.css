@@ -1,0 +1,44 @@
+.container {
+    display: flex;
+    flex-direction: column;
+}
+#sites {
+    width: 100%;
+}
+a:link {
+    color: #06371e;
+    text-decoration: none
+}
+
+a:visited {
+    color: #06371e;
+    text-decoration: none
+}
+
+a:hover {
+    color: #5c3fac;
+    text-decoration: none
+}
+
+a:active {
+    color: #06371e;
+    text-decoration: none
+}
+
+.row {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    text-align: center;
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+
+}
+.icol {
+    flex: 1;
+    border: #06371e solid 1px;
+    background-color: #dcf0d9;
+    padding:0.3em;
+    margin-left: 0.2em;
+    margin-right: 0.2em;
+}

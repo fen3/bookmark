@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Excel</title>
+    <link href="https://cdn.staticfile.org/layui/2.7.6/css/layui.min.css" type="text/css" rel="stylesheet" />
+</head>
+<body style="padding: 2em;">
+    <h1>Excel处理</h1>
+    <div class="layui-btn-container">
+        <input type="file" id="uploadFile" style="display: none" />
+        <button type="button" class="layui-btn layui-btn-normal" id="selFile">选择文件</button>
+		<br>
+		<button type="button" class="layui-btn" id="btViewSwap">excel(点击切换)</button>
+    </div>
+	<div id="rst">
+	</div>
+    <script src="https://cdn.staticfile.org/layui/2.7.6/layui.min.js" type="application/javascript"></script>
+	
+    <script src="https://cdn.staticfile.org/xlsx/0.18.5/xlsx.mini.min.js"></script>
+	
+    <script>
+        layui.use(['form', 'jquery'], function () {
+			let viewMode = 'excel'
+            const $ = layui.$
+			const titles = ['七级地址ID', '五级地址', '网络来源', '接入方式', '楼宇类型', '覆盖场景', '五级地址ID']
+			function genDiffTbl(head, diff){
+				rows = [`<h3>${head}</h3><table class="layui-table" lay-skin="line">`]
+				rows.push('<thead><tr><th>七级地址ID</th><th>五级地址</th><th>网络来源</th><th>接入方式</th><th>楼宇类型</th><th>覆盖场景</th><th>五级地址ID</th></tr></thead>')
+				rows.push('<tbody>')
+				diff.map(v=>{
+					rows.push('<tr>')
+					for(let i = 0, max = titles.length; i < max; i++){
+						rows.push(`<td>${v[titles[i]]}</td>`)
+					}
+					rows.push('</tr>')
+				})
+				rows.push('</tbody>')
+				rows.push('</table>')
+				return rows.join('')
+			}
+			const s2ab = (s) => {
+				var buf = new ArrayBuffer(s.length);
+				var view = new Uint8Array(buf);
+				for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+				return buf;
+			}
+
+			const saveAs = (obj, filename) => {
+				var link = document.createElement("a");
+				link.download = filename;
+				link.href = URL.createObjectURL(obj);
+				link.click();
+				URL.revokeObjectURL(obj);
+			}
+			const exportExcel = (filename, datas) => {
+				const sheets = {}
+				const sheetnames = []
+				datas.forEach(sheet => {
+					sheets[sheet.sheetname] = XLSX.utils.aoa_to_sheet(sheet.rows)
+					sheetnames.push(sheet.sheetname)
+				})
+				const workbook = { SheetNames: sheetnames, Sheets: sheets }
+				const opts = { bookType: 'xlsx', bookSST: false, type: 'binary' }
+				const wb = XLSX.write(workbook, opts)
+				const blob = new Blob([s2ab(wb)], { type: 'application/octet-stream' })
+				saveAs(blob, filename)
+			}
+			function diff2Rows(diff){
+				const rows = [titles,]
+				diff.map(v=>{
+						const row = []
+						for(let i = 0, max = titles.length; i < max; i++){
+							row.push(v[titles[i]])
+						}
+						rows.push(row)
+				})
+				return rows
+			}
+			function exportDiffs(diffs){
+				exportExcel('结果.xlsx', [
+					{ sheetname: '新增', rows: diff2Rows(diffs.add) },
+					{ sheetname: '修改', rows: diff2Rows(diffs.modify) },
+					{ sheetname: '删除', rows: diff2Rows(diffs.remove) },
+				])
+			}
+            function dealXlxs(bf) {
+                const wb = XLSX.read(bf)
+                const sheet1 = wb.Sheets[wb.SheetNames[0]]
+                const sheet2 = wb.Sheets[wb.SheetNames[1]]
+                const json1 = XLSX.utils.sheet_to_json(sheet1)
+                const json2 = XLSX.utils.sheet_to_json(sheet2)
+                const seven1 = {}
+                const seven2 = {}
+                for (let i = 0, max = json1.length; i < max; i++) {
+                    seven1[json1[i]['七级地址ID']]=json1[i]
+                }
+                for (let j = 0, max2 = json2.length; j < max2; j++) {
+                    seven2[json2[j]['七级地址ID']]=json2[j]
+                }
+                diff = { remove: [], modify: [], add: [] }
+                Object.keys(seven1).map(k1 => {
+                    if (seven2[k1]) {
+                        if (seven2[k1]['五级地址ID'] != seven1[k1]['五级地址ID']) {
+                            diff.modify.push(seven2[k1])
+                        }
+                    } else {
+                        diff.remove.push(seven1[k1])
+                    }
+                })
+                Object.keys(seven2).map(k2 => {
+                    if (!seven1[k2]) {
+                        diff.add.push(seven2[k2])
+                    }
+                })
+				if(viewMode == 'excel'){
+					exportDiffs(diff)
+				} else {
+					const t1 = genDiffTbl('新增', diff.add)
+					const t2 = genDiffTbl('修改', diff.modify)
+					const t3 = genDiffTbl('删除', diff.remove)
+					$("#rst").html([t1, t2, t3].join(''))
+				}
+            }
+            $('#selFile').click(function () {
+                $("#uploadFile").click()
+            })
+            $("#uploadFile").change(function (evt) {
+                const reader = new FileReader()
+                const file = this.files[0]
+                reader.onload = function () {
+                    dealXlxs(reader.result)
+                }
+                reader.readAsArrayBuffer(file)
+            })
+			const btViewSwapText = {
+				'excel': 'excel(点击切换)',
+				'table': '页面(点击切换)'
+			}
+			$("#btViewSwap").click(function(){
+				viewMode = viewMode == 'excel' ? 'table' : 'excel'
+				
+				$(this).html(btViewSwapText[viewMode])
+			})
+        });
+    </script>
+</body>
+</html>

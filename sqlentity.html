@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sql生成Entity</title>
+  <style>
+    #javacode {
+      width: 100%;
+      height: 40em;
+    }
+    #sqlcode {
+      width: 100%;
+      height: 40em;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="display:flex; flex-direction: row;">
+    <div style="width: 50em;;height: 50em;">
+      <h3>sql</h3>
+      <textarea id="sqlcode"></textarea>
+    </div>
+    <div style="width: 50em;;height: 50em; margin-left: 1em;">
+      <h3>java</h3>
+      <textarea id="javacode"></textarea>
+    </div>
+</div>
+  <script type="module">
+    import genClassCode from './sql2entity.js'
+
+    let timeoutId = null
+    function genCode(sql){
+      if(timeoutId){
+        clearTimeout(timeoutId)
+      }
+      timeoutId = setTimeout(()=>{
+        document.getElementById('javacode').value = genClassCode(sql)
+      }, 1000)
+    }
+    document.querySelector('#sqlcode').addEventListener('input', evt=>{
+       genCode(evt.target.value)
+    })
+
+  </script>
+
+  </script>
+</body>
+
+</html>
