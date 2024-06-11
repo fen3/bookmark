@@ -89,8 +89,12 @@ const MyJavaMap = {
 	'FLOAT': 'Float',
 	'CHAR': 'String',
 	'TEXT': 'String',
+	'MEDIUMTEXT': 'String',
+	'TINYTEXT': 'String',
+	'LONGTEXT': 'String',
 	'JSON': 'String',
 	'DECIMAL': 'BigDecimal',
+	'UUID': 'String'
 }
 function genImports(fields) {
 	const imps = []
