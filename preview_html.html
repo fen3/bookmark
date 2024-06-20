@@ -24,6 +24,22 @@
         .view {
             grid-area: view;
         }
+
+        .toast {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            padding: 12px;
+            border-radius: 6px;
+            background-color: rgba(95, 184, 120, 0.9);
+            color: #FFF;
+            font-size: 1.2rem;
+            line-height: 1.5;
+            z-index: 9999;
+        }
     </style>
 </head>
 
@@ -37,34 +53,39 @@
         </div>
     </div>
     <script>
-        function copyText(txt, msg) {
-            const temp = document.createElement('textarea');
-            temp.style.display = 'none'
-            temp.value = txt
-            document.body.appendChild(temp)
-            temp.select()
-            try {
-                document.execCommand('copy')
-                alert(msg)
-            } catch (error) {
-                console.log("Copy to clipboard failed.");
-            } finally {
-                document.body.removeChild(temp);
-            }
+         function showToast(message) {
+            const toast = document.createElement('div');
+            toast.classList.add('toast');
+            toast.innerText = message;
 
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
         }
-        document.getElementById('htmlsrc').addEventListener('input', (evt) => {
+        async function copyTextToClipboard(text, tips) {
+            try {
+                // 写入剪贴板
+                await navigator.clipboard.writeText(text)
+                showToast(tips)
+            } catch (err) {
+                console.log(err)
+                showToast('无法使用复制功能')
+            }
+        }
+        document.getElementById('htmlsrc').addEventListener('input', async (evt) => {
             document.getElementById('view').innerHTML = evt.target.value;
             const els = document.getElementById('view').querySelectorAll('.gotoUrlAndCopytext')
             for (const cpdiv of els) {
                 // console.log(cpdiv)
                 cpdiv.addEventListener('click', (evt) => {
                     const el = evt.target
-                    console.log( el.dataset)
+                    console.log(el.dataset)
                     const txt = el.dataset.copytext
                     const tips = el.dataset.copytexttips
-                    console.log({txt, tips})
-                    copyText(txt, tips)
+                    console.log({ txt, tips })
+                    copyTextToClipboard(txt, tips)
                 })
             }
         })
