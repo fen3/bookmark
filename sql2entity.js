@@ -14,31 +14,41 @@ function getTableNameFromSql(sql) {
 function getPrimaryKey(sql) {
 	const keyLine = sql.split('\n').map(l => l.trim()).filter(l => l.startsWith('PRIMARY KEY'))
 	if (keyLine.length > 0) {
-		return keyLine[0].substring(keyLine[0].indexOf('(') + 1, keyLine[0].indexOf(')')).split(',').map(f => f.replace(/`/, ''))
+		return keyLine[0].substring(keyLine[0].indexOf('(') + 1, keyLine[0].indexOf(')')).split(',').map(f => f.replace(/`/g, ''))
 	}
 	return []
 }
 function getFields(sql) {
+	const pkFields = getPrimaryKey(sql)
+
 	const lines = sql.split('\n').map(l => l.trim()).filter(ll => ll.startsWith('`'))
-	return lines.map(l => {
-		const fieldName = getFieldNameFromLine(l)
-		const propName = toSmallCamel(fieldName)
-		const bigCamelName = toBigCamel(fieldName)
-		const myType = getFieldTypeFromLine(l)
-		const javaType = getJavaType(myType)
-		const comment = getCommentFromLine(l);
-		return {
-			name: fieldName,
-			prop: propName,
-			type: myType,
-			javaType,
-			comment,
-			commentLine: comment != '' ? `${tab}/**${nl}${tab} * ${comment}${nl}${tab} */` : '',
-			propLine: `${tab}private ${javaType} ${propName};`,
-			getter: `${tab}public ${javaType} get${bigCamelName}() {${nl}${tab}${tab}return this.${propName};${nl}${tab}}`,
-			setter: `${tab}public void set${bigCamelName}(${javaType} ${propName}) {${nl}${tab}${tab}this.${propName} = ${propName};${nl}${tab}}`
-		}
-	})
+	return {
+		hasPrimary: pkFields.length > 0,
+		hasIncrement: sql.includes('AUTO_INCREMENT'),
+		fields: lines.map(l => {
+			const fieldName = getFieldNameFromLine(l)
+			const propName = toSmallCamel(fieldName)
+			const bigCamelName = toBigCamel(fieldName)
+			const myType = getFieldTypeFromLine(l)
+			const javaType = getJavaType(myType)
+			const comment = getCommentFromLine(l);
+			const isAutoIncrement = l.includes('AUTO_INCREMENT')
+
+			return {
+				name: fieldName,
+				prop: propName,
+				type: myType,
+				javaType,
+				comment,
+				commentLine: comment != '' ? `${tab}/**${nl}${tab} * ${comment}${nl}${tab} */` : '',
+				propLine: (pkFields.includes(fieldName) ? `${tab}@Id\n` : '')
+					+ (isAutoIncrement ? `${tab}@GeneratedValue\n` : '')
+					+ `${tab}@Column(name="${fieldName}")\n${tab}private ${javaType} ${propName};`,
+				getter: `${tab}public ${javaType} get${bigCamelName}() {${nl}${tab}${tab}return this.${propName};${nl}${tab}}`,
+				setter: `${tab}public void set${bigCamelName}(${javaType} ${propName}) {${nl}${tab}${tab}this.${propName} = ${propName};${nl}${tab}}`
+			}
+		})
+	}
 }
 function getFieldNameFromLine(line) {
 	return line.split('`')[1]
@@ -110,10 +120,14 @@ function getJavaType(myType) {
 }
 function genClassCode(sql) {
 
-	const fields = getFields(sql)
+	const { hasPrimary, hasIncrement, fields } = getFields(sql)
 	const importLines = genImports(fields)
 	const tableName = getTableNameFromSql(sql)
-	const lines = ['', 'import java.io.Serializable;', ...importLines, '']
+	const tblImports = ['import javax.persistence.Column;']
+	hasPrimary && tblImports.push('import javax.persistence.Id;')
+	hasIncrement && tblImports.push('import javax.persistence.GeneratedValue;')
+	const lines = ['', ...tblImports, 'import java.io.Serializable;', ...importLines, '']
+	
 	lines.push(tableName.beginLine)
 	fields.forEach(f => {
 		lines.push('')
