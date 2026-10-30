@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>开发日志 · 从书签站到 AI 导航</title>
+    <meta name="description" content="一次对话式改造记录：把跑了很多年的书签页，改成 AI 工具导航，并上线到 bm.fenv.net。">
+    <link rel="icon" href="/favicon.png">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <style>
+        .article {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 28px;
+            color: var(--muted);
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .back:hover {
+            color: var(--accent);
+        }
+
+        .article h1 {
+            margin: 0 0 10px;
+            font-size: clamp(26px, 4vw, 38px);
+            line-height: 1.3;
+            letter-spacing: -0.01em;
+            text-wrap: balance;
+        }
+
+        .meta-line {
+            margin-bottom: 34px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .meta-line span+span::before {
+            content: "·";
+            margin: 0 8px;
+        }
+
+        .article h2 {
+            margin: 40px 0 14px;
+            padding-left: 11px;
+            border-left: 3px solid var(--accent);
+            font-size: 18px;
+        }
+
+        .article p,
+        .article li {
+            color: #c2cfdf;
+            font-size: 15px;
+            line-height: 1.9;
+        }
+
+        .article p {
+            margin: 0 0 16px;
+        }
+
+        .article ul,
+        .article ol {
+            margin: 0 0 16px;
+            padding-left: 22px;
+        }
+
+        .article li {
+            margin-bottom: 8px;
+        }
+
+        .article strong {
+            color: #eaf1fb;
+        }
+
+        .article code {
+            padding: 2px 6px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #0d141d;
+            color: #9dc4ff;
+            font-size: 13px;
+        }
+
+        .article a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .article a:hover {
+            text-decoration: underline;
+        }
+
+        blockquote {
+            margin: 0 0 20px;
+            padding: 14px 18px;
+            border: 1px solid var(--line);
+            border-left: 3px solid var(--accent-2);
+            border-radius: 8px;
+            background: rgba(139, 92, 246, 0.06);
+            color: #b9c6d8;
+            font-size: 14px;
+        }
+
+        blockquote p:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline {
+            margin: 0 0 20px;
+            padding: 0;
+            list-style: none;
+            counter-reset: step;
+        }
+
+        .timeline li {
+            position: relative;
+            padding-left: 34px;
+            margin-bottom: 14px;
+            color: #c2cfdf;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        .timeline li::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            top: 2px;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(120deg, var(--accent), var(--accent-2));
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 24px 0 28px;
+        }
+
+        .stat {
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--panel);
+            text-align: center;
+        }
+
+        .stat b {
+            display: block;
+            margin-bottom: 4px;
+            background: linear-gradient(120deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 24px;
+        }
+
+        .stat span {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .article table {
+            width: 100%;
+            margin: 0 0 20px;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .article th,
+        .article td {
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            text-align: left;
+        }
+
+        .article th {
+            background: #0d141d;
+            color: #eaf1fb;
+            font-weight: 600;
+        }
+
+        .article td {
+            color: #c2cfdf;
+        }
+
+        @media (max-width: 600px) {
+            .stat-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <article class="article">
+            <a class="back" href="./index.html">← 返回 AI 导航</a>
+
+            <h1>从「书签页」到「AI 导航」：一次对话式改造日志</h1>
+            <div class="meta-line">
+                <span>2026-10-30</span>
+                <span>开发日志</span>
+                <span>bm.fenv.net</span>
+            </div>
+
+            <p>这个仓库原本叫 bookmark，是一个很朴素的个人书签页：一个二维数组装着几十个链接，脚本拼成绿色小方块，用 flex 排版，十多年没怎么动过。功能上它没问题，但每次想找一个新工具，都得先翻浏览器收藏夹。</p>
+
+            <p>于是有了这次改造：<strong>不写新项目，直接把老书签页重构成一个 AI 工具导航站</strong>，并且仍然用原来那套零构建的静态部署方式。整个过程基本是在对话里完成的——我说需求，AI 改代码，我验收效果。</p>
+
+            <div class="stat-row">
+                <div class="stat"><b>84</b><span>收录站点</span></div>
+                <div class="stat"><b>10</b><span>分类</span></div>
+                <div class="stat"><b>0</b><span>构建步骤</span></div>
+            </div>
+
+            <h2>起点：只提了一句话</h2>
+            <blockquote>
+                <p>「改一下，做成一个 AI 网站导航。」</p>
+            </blockquote>
+            <p>没有 PRD，没有设计稿。这句话能落地，是因为老项目的结构足够简单：一个 <code>index.html</code>、一个 <code>style.css</code>，数据和渲染都挤在页面里的内联脚本。改造面小，反而让「重写」比「渐进式修改」更划算。</p>
+
+            <h2>第一步：把数据从「行」改成「分类」</h2>
+            <p>原来的数据结构是 <code>sites</code> 二维数组，每行 4 个、按位置硬性排布，语义全靠我叫得出来。改造后换成按分类组织：</p>
+            <ul>
+                <li>每个分类一个 <code>{ cat, sites }</code> 对象，站点是 <code>[名称, 链接, 一句话描述]</code>；</li>
+                <li>渲染不再写死 4 列，交给 CSS Grid 自适应，卡片数量和屏幕宽度都能自己适配；</li>
+                <li>新增描述字段后，搜索就能同时匹配名称、描述和分类名。</li>
+            </ul>
+            <p>分类最终定为 10 组：对话与通用、编程开发、图像生成、视频生成、音频与音乐、办公与效率、搜索与研究、模型与平台、资讯与学习，以及「本站工具」。</p>
+
+            <h2>第二步：视觉与交互，顺手一起做</h2>
+            <p>既然数据重写了，样式就不该继续沿用绿色方块。这一轮换了深色底 + 蓝紫渐变光晕，搜索框做成玻璃感圆角，卡片 hover 上浮并描边。比较实用的几个小细节：</p>
+            <ul>
+                <li><strong>搜索</strong>：按 <code>/</code> 聚焦，<code>Esc</code> 清空，输入即筛；</li>
+                <li><strong>分类筛选</strong>：chip 与搜索可叠加，控制「同时满足」；</li>
+                <li><strong>结果计数</strong>：实时显示 <code>显示 N / 84</code>，无结果时给空态提示而不是留一片空白；</li>
+                <li><strong>Logo</strong>：没有图标资源，就取名称首字，用名称哈希生成固定色相，保证同一个站点每次颜色一致。</li>
+            </ul>
+            <p>移动端在 600px 以下隐藏描述文字、缩小卡片，一行两列，信息密度不至于崩掉。</p>
+
+            <h2>第三步：先本地验收，再谈上线</h2>
+            <p>改造完没有直接推送，而是起了个本地静态服务，用无头 Chrome 截图验收三个状态：初始渲染、搜索「视频」、点击「编程开发」。截图里能直接看到非匹配分组被隐藏、计数从 84 变成 10，确认逻辑对了才继续。</p>
+            <p>顺带清掉了一个历史遗留问题：<a href="./sqlentity.html">sqlentity.html</a> 末尾多了一个孤立的 <code>&lt;/script&gt;</code> 标签，浏览器一直在容错，但不该留着。</p>
+
+            <h2>第四步：上线，以及一个小插曲</h2>
+            <p>这个仓库本来就挂在 GitHub Pages 上，域名 <code>bm.fenv.net</code> 由 <code>CNAME</code> 绑定。所以「部署」并不是换平台，而是把 <code>main</code> 推上去，等 Pages 自动构建：</p>
+            <ol>
+                <li>把工作分支快进合并到 <code>main</code>；</li>
+                <li>推送 <code>origin/main</code>，等待 Pages 状态从 <code>building</code> 变成 <code>built</code>；</li>
+                <li>线上抓取页面，确认标题是「AI 导航」、<code>style.css</code> 返回 200；</li>
+                <li>再用无头浏览器截一张线上图，确认不是「构建成功但白屏」。</li>
+            </ol>
+            <p>插曲是：本想用 Trae 内置的部署服务，但当前运行环境缺少所需的运行时上下文（<code>TRAE_PROJECT_ID</code>），CLI 直接拒绝了请求。既然项目本身已经有 Pages + 自定义域名这套现成链路，绕回原方案反而更快，也更符合「零构建」的初衷。</p>
+
+            <h2>结果与复盘</h2>
+            <table>
+                <thead>
+                    <tr><th>维度</th><th>改造前</th><th>改造后</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>定位</td><td>个人书签</td><td>AI 工具导航</td></tr>
+                    <tr><td>数据</td><td>4 列固定二维数组</td><td>按分类分组的对象数组</td></tr>
+                    <tr><td>检索</td><td>无</td><td>搜索 + 分类筛选 + 计数</td></tr>
+                    <tr><td>视觉</td><td>浅色绿方块</td><td>深色 + 渐变 + 卡片网格</td></tr>
+                    <tr><td>部署</td><td>GitHub Pages</td><td>GitHub Pages（不变）</td></tr>
+                </tbody>
+            </table>
+            <p>回头看，这次改造能这么快，靠的是两件事：<strong>项目足够小</strong>，以及<strong>每一步都有可验证的产物</strong>——截图、状态码、Pages 构建状态，而不是「应该没问题」。</p>
+            <p>后面的可选项有：给站点补真实 favicon（现在是首字母占位）、把 84 条数据抽成单独的 JSON 便于维护、加个「常用」置顶区。都不急，先让导航用起来。</p>
+        </article>
+
+        <footer class="foot">
+            写于 2026-10-30 · <a href="./index.html">返回 AI 导航</a>
+        </footer>
+    </div>
+</body>
+
+</html>
