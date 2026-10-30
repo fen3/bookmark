@@ -1,58 +1,260 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>V3 Favs</title>
+    <title>AI 导航</title>
+    <meta name="description" content="精选 AI 对话、编程、绘图、视频、音频、办公、搜索与模型平台，一站直达。">
     <link rel="icon" href="/favicon.png">
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
 <body>
-    <section>
-        <h2>V3 Favs</h2>
-    </section>
-    <section id="sites">
-    </section>
-</body>
+    <div class="page">
+        <header class="hero">
+            <h1>AI <span>导航</span></h1>
+            <p class="sub">精选 AI 工具与平台，一站直达</p>
 
-<script>
-    
-    const sites = [
-        [['https://github.com/', 'Github'], ['https://www.oschina.net/', 'OSChina'], ['https://v2ex.com/', 'V2EX'], ['https://segmentfault.com/', '思否']],
-        [['https://www.taobao.com/', '淘宝'], ['https://www.jd.com/', '京东'], ['https://www.suning.com/', '苏宁'], ['https://www.smzdm.com/', '什么值得买']],
-        [['https://www.bilibili.com/', '哔哩哔哩'], ['http://www.iqiyi.com/', '爱奇艺'], ['https://www.mgtv.com/', '芒果TV'], ['https://v.qq.com/', '腾讯视频']],
-        [['https://developer.mozilla.org/', 'MDN'], ['https://docs.python.org/3/', 'Py3Doc'], ['https://www.djangoproject.com/', 'Django'], ['http://codeigniter.org.cn/', 'codeigniter']],
-        [['https://mirrors.tuna.tsinghua.edu.cn/', '清华开源'], ['http://mirrors.163.com/', '网易开源'], ['https://mirrors.cloud.tencent.com/index.html', '腾讯开源'], ['https://opsx.alibaba.com/mirror', '阿里云开源']],
-        [['http://www.ccb.com/cn/home/indexv3.html', '建行'], ['http://www.boc.cn/', '中行'], ['http://www.icbc.com.cn/icbc/', '工行'], ['http://www.abchina.com/cn/', '农行']],
-        [['https://cn.vuejs.org/', 'VUEJS'], ['https://stackoverflow.com/', 'stackoverflow']],
-        [['https://poi.apache.org/index.html', 'POI'], ['https://spring.io/projects/spring-boot', 'SpringBoot'], ['https://docs.oracle.com/en/java/javase/17/docs/api/index.html', 'jdk17Doc'], ['https://baomidou.com/', 'MyBatis-Plus']],
-        [['https://day.js.org/zh-CN/', 'dayjs'],['http://momentjs.cn/', 'moment中文'], ['https://grid.layoutit.com/', 'layoutit'], ['https://github.com/Tencent/secguide', '安全指南']],
-        [['https://bulma.io/', 'Bulma'], ['https://zh-hans.reactjs.org/', 'reactjs'], ['https://www.bootcss.com/', 'Bootstrap'], ['https://jquery.com/', 'JQuery']],
-        [['https://nodejs.org/zh-cn/', 'Node.js'], ['http://expressjs.com/', 'express.js'], ['https://ant.design/index-cn', 'antd']],
-        [['https://www.google.cn/chrome/thank-you.html?standalone=1&statcb=1&installdataindex=empty&defaultbrowser=0', 'Chrome下载'], ['https://download.mozilla.org/?product=firefox-latest&os=win64&lang=zh-CN', 'Firefox下载']],
-        [['https://ventoy.net/', 'Ventoy'], ['https://raw.hellogithub.com/hosts', '520GitHub']],
-        [['http://java.bejson.com/generator/', 'JAVA代码生成器'], ['https://www.lfd.uci.edu/~gohlke/pythonlibs/', 'PythonLib'], ['https://mvnrepository.com/', 'mvnrepo']],
-        [['https://qwerty.kaiyi.cool/', '打字练习'], ['https://zm-digicol.dpm.org.cn/', '故宫藏品']],
-        [['https://ant-design.antgroup.com/index-cn', 'antd国内']],
-        [['https://cdn.bytedance.com/', '字节跳动CDN'], ['http://www.staticfile.org/', '七牛cdn'], ['http://www.cdnjs.com/', 'cdnjs']],
-        [['https://developer.nvidia.com/cuda-toolkit-archive', 'cuda'], ['https://developer.download.nvidia.cn/compute/redist/cudnn/', 'cudnn'],['http://security.ubuntu.com/ubuntu/pool/main/', 'ubuntuSecurity']],
-        [['https://bootstrap.pypa.io/get-pip.py', 'get-pip'], ['./sqlentity.html', 'sql2entity']]
-    ];
-    const htmlParts = []
-    htmlParts.push('<div class="container">')
-    for (let rowIdx = 0, maxRow = sites.length; rowIdx < maxRow; rowIdx++) {
-        htmlParts.push('<div class="row">')
-        row = sites[rowIdx]
-        for (let colIdx = 0, maxCol = row.length; colIdx < maxCol; colIdx++) {
-            site = row[colIdx]
-            htmlParts.push(`<a class="icol" href="${site[0]}">${site[1]}</a>`)
+            <div class="search">
+                <input id="search" type="search" autocomplete="off" placeholder="搜索工具、场景或分类">
+                <kbd>/</kbd>
+            </div>
+            <div id="count" class="count"></div>
+
+            <nav id="cats" class="cats"></nav>
+        </header>
+
+        <main id="sites"></main>
+
+        <p id="empty" class="empty" hidden>没有找到匹配的站点</p>
+
+        <footer class="foot">
+            <span id="total"></span> 个站点 · 书签数据维护于 index.html
+        </footer>
+    </div>
+
+    <script>
+        const NAV = [
+            {
+                cat: '对话与通用',
+                sites: [
+                    ['ChatGPT', 'https://chat.openai.com/', 'OpenAI 通用对话助手'],
+                    ['Claude', 'https://claude.ai/', 'Anthropic 长文本对话'],
+                    ['Gemini', 'https://gemini.google.com/', 'Google 多模态助手'],
+                    ['DeepSeek', 'https://chat.deepseek.com/', '深度求索开源大模型'],
+                    ['Kimi', 'https://kimi.moonshot.cn/', '月之暗面长文档助手'],
+                    ['豆包', 'https://www.doubao.com/', '字节跳动 AI 助手'],
+                    ['通义千问', 'https://tongyi.aliyun.com/', '阿里大模型对话'],
+                    ['文心一言', 'https://yiyan.baidu.com/', '百度大模型对话'],
+                    ['智谱清言', 'https://chatglm.cn/', '智谱 GLM 对话'],
+                    ['腾讯元宝', 'https://yuanbao.tencent.com/', '腾讯混元助手'],
+                    ['讯飞星火', 'https://xinghuo.xfyun.cn/', '科大讯飞大模型'],
+                    ['Le Chat', 'https://chat.mistral.ai/', 'Mistral 欧洲开源模型'],
+                    ['Grok', 'https://grok.com/', 'xAI 实时对话'],
+                    ['Poe', 'https://poe.com/', '多模型聚合对话']
+                ]
+            },
+            {
+                cat: '编程开发',
+                sites: [
+                    ['Trae', 'https://www.trae.ai/', '字节跳动 AI IDE'],
+                    ['Cursor', 'https://cursor.com/', 'AI 代码编辑器'],
+                    ['GitHub Copilot', 'https://github.com/features/copilot', 'GitHub 智能补全'],
+                    ['Claude Code', 'https://www.claude.com/product/claude-code', '终端里的编程智能体'],
+                    ['Windsurf', 'https://windsurf.com/', '智能体式 IDE'],
+                    ['通义灵码', 'https://lingma.aliyun.com/', '阿里编码助手'],
+                    ['文心快码', 'https://comate.baidu.com/', '百度智能编码'],
+                    ['v0', 'https://v0.dev/', '对话生成前端界面'],
+                    ['Bolt.new', 'https://bolt.new/', '浏览器里全栈生成'],
+                    ['Replit', 'https://replit.com/', '在线协作开发'],
+                    ['Cline', 'https://cline.bot/', 'VS Code 编程智能体'],
+                    ['Devin', 'https://devin.ai/', '自主软件工程智能体']
+                ]
+            },
+            {
+                cat: '图像生成',
+                sites: [
+                    ['Midjourney', 'https://www.midjourney.com/', '高质量 AI 绘画'],
+                    ['Stable Diffusion', 'https://stability.ai/', '开源图像生成模型'],
+                    ['Civitai', 'https://civitai.com/', 'SD 模型与提示词社区'],
+                    ['DALL·E', 'https://openai.com/dall-e-3', 'OpenAI 图像生成'],
+                    ['即梦', 'https://jimeng.jianying.com/', '字节图像与视频创作'],
+                    ['通义万相', 'https://tongyi.aliyun.com/wanxiang/', '阿里图像生成'],
+                    ['文心一格', 'https://yige.baidu.com/', '百度 AI 绘画'],
+                    ['Leonardo', 'https://leonardo.ai/', '游戏美术素材生成'],
+                    ['Ideogram', 'https://ideogram.ai/', '擅长文字排版的生图'],
+                    ['Recraft', 'https://www.recraft.ai/', '矢量与品牌视觉'],
+                    ['LiblibAI', 'https://www.liblib.art/', '国内模型分享社区']
+                ]
+            },
+            {
+                cat: '视频生成',
+                sites: [
+                    ['Sora', 'https://sora.com/', 'OpenAI 文生视频'],
+                    ['Runway', 'https://runwayml.com/', 'AI 视频创作套件'],
+                    ['Pika', 'https://pika.art/', '轻量视频生成'],
+                    ['可灵', 'https://klingai.com/', '快手视频大模型'],
+                    ['海螺 AI', 'https://hailuoai.com/', 'MiniMax 视频创作'],
+                    ['Luma', 'https://lumalabs.ai/dream-machine', 'Dream Machine 视频'],
+                    ['HeyGen', 'https://www.heygen.com/', '数字人视频'],
+                    ['Synthesia', 'https://www.synthesia.io/', '企业数字人讲解']
+                ]
+            },
+            {
+                cat: '音频与音乐',
+                sites: [
+                    ['Suno', 'https://suno.com/', '文本生成歌曲'],
+                    ['Udio', 'https://www.udio.com/', 'AI 音乐创作'],
+                    ['ElevenLabs', 'https://elevenlabs.io/', '拟真语音合成'],
+                    ['讯飞配音', 'https://peiyin.xunfei.cn/', '中文配音与音色'],
+                    ['魔音工坊', 'https://www.moyin.com/', '短视频配音工具'],
+                    ['Adobe Podcast', 'https://podcast.adobe.com/', '录音降噪增强']
+                ]
+            },
+            {
+                cat: '办公与效率',
+                sites: [
+                    ['Notion AI', 'https://www.notion.so/product/ai', '笔记与知识库助手'],
+                    ['Gamma', 'https://gamma.app/', '一键生成演示文稿'],
+                    ['WPS AI', 'https://ai.wps.cn/', '文档表格智能助手'],
+                    ['讯飞听见', 'https://www.iflyrec.com/', '录音转文字'],
+                    ['秘塔写作猫', 'https://xiezuocat.com/', '中文写作校对'],
+                    ['ChatPDF', 'https://www.chatpdf.com/', '与 PDF 对话'],
+                    ['佐糖', 'https://picwish.cn/', '抠图与图片处理']
+                ]
+            },
+            {
+                cat: '搜索与研究',
+                sites: [
+                    ['Perplexity', 'https://www.perplexity.ai/', '带引用的 AI 搜索'],
+                    ['秘塔 AI 搜索', 'https://metaso.cn/', '中文无广告搜索'],
+                    ['天工 AI', 'https://www.tiangong.cn/', '昆仑万维搜索助手'],
+                    ['纳米 AI 搜索', 'https://www.n.cn/', '360 多模态搜索'],
+                    ['Consensus', 'https://consensus.app/', '论文结论检索'],
+                    ['Elicit', 'https://elicit.com/', '文献综述助手'],
+                    ['SciSpace', 'https://typeset.io/', '论文阅读与问答'],
+                    ['arXiv', 'https://arxiv.org/', '预印本论文库']
+                ]
+            },
+            {
+                cat: '模型与平台',
+                sites: [
+                    ['Hugging Face', 'https://huggingface.co/', '开源模型与数据集'],
+                    ['ModelScope', 'https://modelscope.cn/', '阿里模型社区'],
+                    ['OpenAI Platform', 'https://platform.openai.com/', 'OpenAI API 平台'],
+                    ['阿里百炼', 'https://bailian.console.aliyun.com/', '阿里大模型应用平台'],
+                    ['火山方舟', 'https://www.volcengine.com/product/ark', '字节大模型服务平台'],
+                    ['智谱开放平台', 'https://open.bigmodel.cn/', 'GLM API 服务'],
+                    ['Replicate', 'https://replicate.com/', '在线运行开源模型'],
+                    ['Ollama', 'https://ollama.com/', '本地部署大模型'],
+                    ['OpenRouter', 'https://openrouter.ai/', '多模型统一接口']
+                ]
+            },
+            {
+                cat: '资讯与学习',
+                sites: [
+                    ['机器之心', 'https://www.jiqizhixin.com/', 'AI 行业深度报道'],
+                    ['量子位', 'https://www.qbitai.com/', 'AI 前沿资讯'],
+                    ['AI 工具集', 'https://ai-bot.cn/', '中文 AI 工具大全'],
+                    ['通往 AGI 之路', 'https://waytoagi.com/', 'AI 学习知识库'],
+                    ['Papers with Code', 'https://paperswithcode.com/', '论文与开源代码']
+                ]
+            },
+            {
+                cat: '本站工具',
+                sites: [
+                    ['SQL → Entity', './sqlentity.html', '建表语句生成 Java 实体'],
+                    ['Excel 差异比对', './xlsx.html', '两表对比新增修改删除'],
+                    ['HTML 预览', './preview_html.html', '源码实时渲染与复制']
+                ]
+            }
+        ]
+
+        const sitesEl = document.getElementById('sites')
+        const searchEl = document.getElementById('search')
+        const countEl = document.getElementById('count')
+        const catsEl = document.getElementById('cats')
+        const emptyEl = document.getElementById('empty')
+        const totalEl = document.getElementById('total')
+
+        const total = NAV.reduce((sum, group) => sum + group.sites.length, 0)
+        totalEl.textContent = total
+
+        const esc = (str) => str.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+        const hue = (str) => {
+            let h = 0
+            for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 360
+            return h
         }
-        htmlParts.push('</div>')
-    }
-    htmlParts.push('</div>')
-    document.getElementById("sites").innerHTML = htmlParts.join('')
-</script>
+
+        const cardHtml = (site, cat) => {
+            const name = esc(site[0])
+            const url = esc(site[1])
+            const desc = esc(site[2])
+            const external = /^https?:/.test(site[1])
+            const linkAttrs = external ? ' target="_blank" rel="noopener"' : ''
+            return `<a class="card" href="${url}"${linkAttrs} data-search="${esc((site[0] + ' ' + site[2] + ' ' + cat).toLowerCase())}">
+                <span class="logo" style="--h:${hue(site[0])}">${name[0].toUpperCase()}</span>
+                <span class="meta"><strong>${name}</strong><em>${desc}</em></span>
+            </a>`
+        }
+
+        sitesEl.innerHTML = NAV.map((group) => `
+            <section class="group" data-cat="${esc(group.cat)}">
+                <h2 class="group-title">${esc(group.cat)}<span class="group-count">${group.sites.length}</span></h2>
+                <div class="grid">${group.sites.map((site) => cardHtml(site, group.cat)).join('')}</div>
+            </section>
+        `).join('')
+
+        const cats = ['全部', ...NAV.map((group) => group.cat)]
+        let activeCat = '全部'
+        catsEl.innerHTML = cats.map((cat) => `<button type="button" class="chip${cat === '全部' ? ' active' : ''}" data-cat="${esc(cat)}">${esc(cat)}</button>`).join('')
+
+        function applyFilter() {
+            const kw = searchEl.value.trim().toLowerCase()
+            let shown = 0
+
+            document.querySelectorAll('.group').forEach((group) => {
+                let visible = 0
+                group.querySelectorAll('.card').forEach((card) => {
+                    const ok = (activeCat === '全部' || group.dataset.cat === activeCat)
+                        && (!kw || card.dataset.search.includes(kw))
+                    card.hidden = !ok
+                    if (ok) visible++
+                })
+                group.hidden = visible === 0
+                shown += visible
+            })
+
+            countEl.textContent = `显示 ${shown} / ${total}`
+            emptyEl.hidden = shown > 0
+        }
+
+        catsEl.addEventListener('click', (evt) => {
+            const chip = evt.target.closest('.chip')
+            if (!chip) return
+            activeCat = chip.dataset.cat
+            catsEl.querySelectorAll('.chip').forEach((el) => el.classList.toggle('active', el === chip))
+            applyFilter()
+        })
+
+        searchEl.addEventListener('input', applyFilter)
+
+        document.addEventListener('keydown', (evt) => {
+            if (evt.key === '/' && document.activeElement !== searchEl) {
+                evt.preventDefault()
+                searchEl.focus()
+            }
+            if (evt.key === 'Escape' && document.activeElement === searchEl) {
+                searchEl.value = ''
+                searchEl.blur()
+                applyFilter()
+            }
+        })
+
+        applyFilter()
+    </script>
+</body>
 
 </html>
