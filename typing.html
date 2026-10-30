@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Typing Test · 打字测速</title>
+    <meta name="description" content="60 秒英文打字速度测试：实时统计 WPM、准确率与错误数。">
+    <link rel="icon" href="/favicon.png">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <style>
+        .typing {
+            max-width: 940px;
+            margin: 0 auto;
+        }
+
+        .typing h1 {
+            margin: 0;
+            font-size: clamp(28px, 4vw, 42px);
+            letter-spacing: -0.02em;
+        }
+
+        .typing .sub {
+            margin: 10px 0 26px;
+        }
+
+        .bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .cell {
+            padding: 14px 10px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--panel);
+            text-align: center;
+        }
+
+        .cell b {
+            display: block;
+            margin-bottom: 4px;
+            background: linear-gradient(120deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 26px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .cell span {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .panel {
+            position: relative;
+            padding: 30px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--panel);
+            min-height: 190px;
+        }
+
+        .text {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 21px;
+            line-height: 1.95;
+            letter-spacing: 0.3px;
+            word-break: break-word;
+            user-select: none;
+        }
+
+        .char {
+            position: relative;
+            color: #4b5c70;
+            border-radius: 3px;
+            transition: color 0.05s;
+        }
+
+        .char.ok {
+            color: #d7e6ff;
+        }
+
+        .char.bad {
+            color: #ff8080;
+            background: rgba(255, 80, 80, 0.13);
+        }
+
+        .char.cur {
+            color: #eaf1fb;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .panel.idle .char.cur {
+            animation: caret 1.1s steps(1) infinite;
+        }
+
+        @keyframes caret {
+            50% {
+                border-bottom-color: transparent;
+            }
+        }
+
+        .cover {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 14px;
+            background: rgba(8, 11, 16, 0.88);
+            backdrop-filter: blur(6px);
+            text-align: center;
+        }
+
+        .cover[hidden] {
+            display: none;
+        }
+
+        .cover b {
+            font-size: 30px;
+            background: linear-gradient(120deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .cover em {
+            color: var(--muted);
+            font-style: normal;
+            font-size: 13px;
+        }
+
+        .cover button {
+            margin-top: 10px;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .hint {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .btn {
+            padding: 9px 18px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+
+        .btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn.primary {
+            border-color: transparent;
+            background: linear-gradient(120deg, var(--accent), var(--accent-2));
+            color: #fff;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 28px;
+            color: var(--muted);
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .back:hover {
+            color: var(--accent);
+        }
+
+        @media (max-width: 600px) {
+            .panel {
+                padding: 20px;
+            }
+
+            .text {
+                font-size: 18px;
+            }
+
+            .bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page typing">
+        <h1>Typing Test</h1>
+        <p class="sub">60 秒英文打字测速 · 开始输入即计时 · Tab 重新开始</p>
+
+        <div class="bar">
+            <div class="cell"><b id="vTime">60</b><span>剩余秒数</span></div>
+            <div class="cell"><b id="vWpm">0</b><span>WPM</span></div>
+            <div class="cell"><b id="vAcc">100</b><span>准确率 %</span></div>
+            <div class="cell"><b id="vErr">0</b><span>错误</span></div>
+        </div>
+
+        <div class="panel idle" id="panel">
+            <div class="text" id="text"></div>
+            <div class="cover" id="cover" hidden>
+                <b id="cTitle">—</b>
+                <em id="cSub">—</em>
+                <button class="btn primary" type="button" id="cBtn">Try again</button>
+            </div>
+        </div>
+
+        <div class="actions">
+            <span class="hint" id="hint">Literally just start typing.</span>
+            <button class="btn" type="button" id="restart">重新开始 · Tab</button>
+        </div>
+
+        <a class="back" href="./index.html">← 返回 AI 导航</a>
+    </div>
+
+    <script>
+        const PASSAGES = [
+            'The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump.',
+            'Simplicity is the ultimate sophistication. Any fool can make something complicated, but it takes a genius to make it simple.',
+            'Programs must be written for people to read, and only incidentally for machines to execute. Talk is cheap, show me the code.',
+            'The best way to predict the future is to invent it. Every great developer got there by solving problems they were not qualified to solve.',
+            'Premature optimization is the root of all evil. Make it work, make it right, make it fast, and then measure before you guess again.',
+            'A good programmer is someone who always looks both ways before crossing a one way street. Keep it simple, keep it readable, keep it tested.'
+        ]
+        const DURATION = 60000
+
+        const panelEl = document.getElementById('panel')
+        const textEl = document.getElementById('text')
+        const hintEl = document.getElementById('hint')
+        const coverEl = document.getElementById('cover')
+        const cTitleEl = document.getElementById('cTitle')
+        const cSubEl = document.getElementById('cSub')
+        const cBtnEl = document.getElementById('cBtn')
+        const restartEl = document.getElementById('restart')
+
+        let passage = ''
+        let chars = []
+        let typed = []
+        let idx = 0
+        let wrongPresses = 0
+        let totalPresses = 0
+        let startAt = 0
+        let timerId = null
+        let state = 'idle' // idle | running | done
+
+        function render() {
+            textEl.textContent = ''
+            chars = []
+            for (let i = 0; i < passage.length; i++) {
+                const span = document.createElement('span')
+                span.className = 'char' + (i === idx ? ' cur' : '')
+                span.textContent = passage[i]
+                textEl.appendChild(span)
+                chars.push(span)
+            }
+            if (idx >= passage.length) idx = passage.length - 1
+        }
+
+        function setStats(timeSec, wpm, acc, err) {
+            document.getElementById('vTime').textContent = timeSec
+            document.getElementById('vWpm').textContent = wpm
+            document.getElementById('vAcc').textContent = acc
+            document.getElementById('vErr').textContent = err
+        }
+
+        function liveStats() {
+            const elapsed = state === 'idle' ? 0 : Math.min(DURATION, Date.now() - startAt)
+            const minutes = Math.max(elapsed, 1000) / 60000
+            const correct = typed.filter(Boolean).length
+            const wpm = Math.round((correct / 5) / minutes)
+            const acc = totalPresses === 0 ? 100 : Math.round((correct / totalPresses) * 100)
+            const left = Math.ceil((DURATION - elapsed) / 1000)
+            setStats(Math.max(left, 0), state === 'idle' ? 0 : wpm, acc, wrongPresses)
+        }
+
+        function start() {
+            if (state !== 'idle') return
+            state = 'running'
+            startAt = Date.now()
+            panelEl.classList.remove('idle')
+            hintEl.textContent = 'Keep going, speed counts.'
+            timerId = setInterval(() => {
+                const elapsed = Date.now() - startAt
+                liveStats()
+                if (elapsed >= DURATION) finish('Time is up')
+            }, 200)
+        }
+
+        function finish(reason) {
+            if (state === 'done') return
+            state = 'done'
+            clearInterval(timerId)
+            const elapsed = Math.min(DURATION, Date.now() - startAt)
+            const minutes = Math.max(elapsed, 1000) / 60000
+            const correct = typed.filter(Boolean).length
+            const wpm = Math.round((correct / 5) / minutes)
+            const acc = totalPresses === 0 ? 100 : Math.round((correct / totalPresses) * 100)
+            setStats(Math.ceil(Math.max(0, DURATION - elapsed) / 1000), wpm, acc, wrongPresses)
+            panelEl.classList.remove('idle')
+            chars.forEach((span) => { span.className = 'char' })
+            cTitleEl.textContent = wpm + ' WPM'
+            cSubEl.textContent = `${acc}% 准确率 · ${correct} 个正确字符 · ${wrongPresses} 次错误`
+            coverEl.hidden = false
+            hintEl.textContent = reason + ' · 按 Tab 或点击按钮再试一次。'
+        }
+
+        function reset() {
+            clearInterval(timerId)
+            timerId = null
+            state = 'idle'
+            passage = PASSAGES[Math.floor(Math.random() * PASSAGES.length)]
+            idx = 0
+            typed = []
+            wrongPresses = 0
+            totalPresses = 0
+            startAt = 0
+            coverEl.hidden = true
+            panelEl.classList.add('idle')
+            hintEl.textContent = 'Literally just start typing.'
+            setStats(60, 0, 100, 0)
+            render()
+        }
+
+        function onKey(evt) {
+            if (evt.metaKey || evt.ctrlKey || evt.altKey) return
+            if (evt.key === 'Tab') {
+                evt.preventDefault()
+                reset()
+                return
+            }
+            if (evt.key === 'Escape') {
+                reset()
+                return
+            }
+            if (state === 'done') return
+            if (evt.key === 'Backspace') {
+                evt.preventDefault()
+                if (idx > 0) {
+                    idx--
+                    typed[idx] = null
+                    chars[idx].className = 'char cur'
+                    if (chars[idx + 1]) chars[idx + 1].className = 'char'
+                    hintEl.textContent = 'Backspace 可以回退修改。'
+                }
+                return
+            }
+            if (evt.key.length !== 1) return
+            evt.preventDefault()
+            if (state === 'idle') start()
+
+            totalPresses++
+            const expected = passage[idx]
+            const ok = evt.key === expected
+            typed[idx] = ok
+            if (!ok) wrongPresses++
+            const prev = chars[idx]
+            prev.className = 'char' + (ok ? ' ok' : ' bad')
+            idx++
+            if (idx < chars.length) chars[idx].className = 'char cur'
+            liveStats()
+            if (idx >= passage.length) finish('Passage complete')
+        }
+
+        restartEl.addEventListener('click', reset)
+        cBtnEl.addEventListener('click', reset)
+        document.addEventListener('keydown', onKey)
+        panelEl.addEventListener('click', () => hintEl.textContent = 'Just type — no need to click here.')
+
+        reset()
+    </script>
+</body>
+
+</html>
