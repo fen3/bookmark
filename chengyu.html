@@ -50,8 +50,25 @@
     padding:20px 18px; margin-bottom:18px; min-height:110px;
     display:flex; flex-direction:column; justify-content:center;
   }
-  .q-label { font-size:13px; color:#4a90d9; font-weight:700; margin-bottom:6px; }
+  .q-label { font-size:13px; color:#4a90d9; font-weight:700; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; }
   .q-text { font-size:19px; line-height:1.7; color:#2c3e50; font-weight:600; }
+  .read-btn {
+    border:2px solid #91caff; background:#fff; border-radius:99px;
+    width:38px; height:38px; font-size:18px; cursor:pointer; flex:none;
+    display:flex; align-items:center; justify-content:center; transition:all .15s;
+  }
+  .read-btn:hover { background:#e6f4ff; transform:scale(1.08); }
+  .read-btn:disabled { opacity:.5; cursor:default; transform:none; }
+  .read-btn.speaking { border-color:#2fbf71; animation:pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(47,191,113,.35)} 50%{box-shadow:0 0 0 7px rgba(47,191,113,0)} }
+
+  .auto-chip {
+    display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none;
+    background:#eef7ff; border:2px solid #91caff; color:#4a90d9;
+    border-radius:99px; padding:4px 12px; font-weight:800; font-size:14px; white-space:nowrap;
+  }
+  .auto-chip.off { background:#f2f4f7; border-color:#d0d7e0; color:#98a2b3; }
+  .auto-chip input { display:none; }
 
   .opts { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .opt {
@@ -109,9 +126,15 @@
       <div class="score-chip">⭐ <span id="score">0</span></div>
       <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
       <div class="score-chip" id="qNum">1/10</div>
+      <label class="auto-chip" id="autoChip" title="自动读题开关">
+        <input type="checkbox" id="autoRead" checked>🔊 读题
+      </label>
     </div>
     <div class="q-box">
-      <div class="q-label">📖 这个解释说的是哪个成语？</div>
+      <div class="q-label">
+        <span>📖 这个解释说的是哪个成语？</span>
+        <button class="read-btn" id="readBtn" onclick="readQuestion()" title="读一遍题目">🔊</button>
+      </div>
       <div class="q-text" id="qText"></div>
     </div>
     <div class="opts" id="opts"></div>
@@ -233,6 +256,8 @@ function renderQuestion(){
     b.onclick = () => answer(b, opt, q);
     wrap.appendChild(b);
   });
+
+  if(autoReadOn()) speak(q.q); else stopSpeak();
 }
 
 function answer(btn, opt, q){
@@ -264,6 +289,10 @@ function answer(btn, opt, q){
   const nb = document.getElementById('nextBtn');
   nb.textContent = (idx === TOTAL-1) ? '查看成绩 🏁' : '下一题 ▶';
   nb.classList.add('show');
+
+  if(autoReadOn()){
+    speak((correct ? '答对啦！' : '正确答案是，' + q.a + '。') + q.a + '，' + q.q);
+  }
 }
 
 function nextQuestion(){
@@ -273,6 +302,7 @@ function nextQuestion(){
 }
 
 function showResult(){
+  stopSpeak();
   document.getElementById('gameScreen').classList.add('hidden');
   const end = document.getElementById('endScreen');
   end.classList.remove('hidden');
@@ -291,6 +321,39 @@ function showResult(){
 
   beep(660,0.12); setTimeout(()=>beep(880,0.12),130); setTimeout(()=>beep(1108,0.2),260);
 }
+
+// 读题（Web Speech API）
+const synthOK = 'speechSynthesis' in window;
+let zhVoice = null;
+function pickVoice(){
+  if(!synthOK) return;
+  const vs = speechSynthesis.getVoices();
+  zhVoice = vs.find(v => /^zh([-_]CN)?/i.test(v.lang)) || vs.find(v => /zh/i.test(v.lang)) || null;
+}
+if(synthOK){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+
+function speak(text){
+  if(!synthOK) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  if(zhVoice) u.voice = zhVoice;
+  u.lang = 'zh-CN'; u.rate = 0.9; u.pitch = 1.1;
+  const btn = document.getElementById('readBtn');
+  btn.classList.add('speaking');
+  const done = () => btn.classList.remove('speaking');
+  u.onend = done; u.onerror = done;
+  speechSynthesis.speak(u);
+}
+function stopSpeak(){ if(synthOK) speechSynthesis.cancel(); document.getElementById('readBtn').classList.remove('speaking'); }
+function autoReadOn(){ return document.getElementById('autoRead').checked; }
+function readQuestion(){ if(questions.length) speak(questions[idx].q); }
+
+document.getElementById('autoRead').addEventListener('change', function(){
+  document.getElementById('autoChip').classList.toggle('off', !this.checked);
+  if(this.checked && !document.getElementById('gameScreen').classList.contains('hidden')) readQuestion();
+  else stopSpeak();
+});
+window.addEventListener('pagehide', stopSpeak);
 
 // 简单音效
 function beep(freq, dur){
