@@ -173,6 +173,15 @@
     }
     .wface.front .word { font-size: 1.12rem; font-weight: 700; line-height: 1.25; }
     .wface.front .hint { font-size: 0.68rem; color: var(--muted); }
+    .say-mini {
+      position: absolute; top: 7px; right: 7px;
+      width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
+      font-size: 0.85rem; line-height: 1; padding: 0;
+      background: linear-gradient(135deg, var(--accent2), #2BB3A3); color: #fff;
+      box-shadow: 0 2px 0 rgba(20,130,120,0.35);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .say-mini:active { transform: translateY(2px); box-shadow: none; }
     .wface.back { transform: rotateY(180deg); }
     .wface.back .word { font-size: 1.05rem; font-weight: 700; line-height: 1.25; }
     .wface.back .ipa { font-size: 0.78rem; color: var(--blue); }
@@ -200,6 +209,13 @@
     .qtype { display: inline-block; font-size: 0.78rem; font-weight: 700; color: var(--purple); background: rgba(132, 94, 194, 0.12); padding: 0.25rem 0.8rem; border-radius: 999px; margin-bottom: 0.9rem; }
     .q-big-emoji { font-size: 4rem; line-height: 1.2; }
     .q-word { font-size: 2.1rem; font-weight: 700; letter-spacing: 0.02em; }
+    .q-say-mini {
+      width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+      font-size: 0.95rem; padding: 0; vertical-align: middle; margin-left: 0.3rem;
+      background: linear-gradient(135deg, var(--accent2), #2BB3A3); color: #fff;
+      box-shadow: 0 2px 0 rgba(20,130,120,0.35);
+    }
+    .q-say-mini:active { transform: translateY(2px); box-shadow: none; }
     .q-sub { color: var(--muted); font-size: 0.85rem; margin-top: 0.3rem; }
     .q-listen-btn {
       margin-top: 0.4rem; width: 76px; height: 76px; border-radius: 50%; border: none; cursor: pointer;
@@ -1270,7 +1286,7 @@
       var cat = DATA[catId];
       $('learnTitle').innerHTML = cat.icon + ' ' + cat.n + ' ' + cat.en +
         '<span class="wcount">' + cat.words.length + ' 词</span>' +
-        '<small>点卡片翻一翻，点小喇叭听发音</small>';
+        '<small>点 🔊 听发音，翻面会自动朗读</small>';
       var grid = $('cardsGrid');
       grid.innerHTML = '';
       cat.words.forEach(function (word) {
@@ -1279,6 +1295,7 @@
         card.innerHTML =
           '<div class="wcard-inner">' +
             '<div class="wface front">' +
+              '<button class="say-mini" title="听发音">🔊</button>' +
               (word.e ? '<span class="emoji">' + word.e + '</span>' : '<span class="letter">' + word.w.charAt(0).toUpperCase() + '</span>') +
               '<div class="word">' + word.w + '</div>' +
               '<div class="hint">点击翻面 👆</div>' +
@@ -1293,6 +1310,11 @@
         card.addEventListener('click', function () {
           card.classList.toggle('flipped');
           beep(520, 0.08);
+          if (card.classList.contains('flipped')) speak(word.w);
+        });
+        card.querySelector('.say-mini').addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          speak(word.w);
         });
         card.querySelector('.say-btn').addEventListener('click', function (ev) {
           ev.stopPropagation();
@@ -1347,7 +1369,8 @@
       var prompt = $('qPrompt');
       prompt.innerHTML = '';
       if (q.type === 'word2zh') {
-        prompt.innerHTML = '<div class="q-word">' + q.word.w + '</div><div class="q-sub">这个词是什么意思呀？</div>';
+        prompt.innerHTML = '<div class="q-word">' + q.word.w + ' <button class="q-say-mini" title="听发音">🔊</button></div><div class="q-sub">这个词是什么意思呀？</div>';
+        prompt.querySelector('.q-say-mini').addEventListener('click', function () { speak(q.word.w); });
       } else if (q.type === 'emoji2word') {
         prompt.innerHTML = '<div class="q-big-emoji">' + q.word.e + '</div><div class="q-sub">图片用英语怎么说？</div>';
       } else {
