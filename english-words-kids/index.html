@@ -79,6 +79,14 @@
       box-shadow: 0 3px 0 rgba(93,78,178,0.1);
     }
     .sound-toggle:active { transform: translateY(2px); box-shadow: none; }
+    .read-link {
+      display: flex; align-items: center; gap: 0.3rem; text-decoration: none;
+      color: var(--ink); font-weight: 700; font-size: 0.85rem;
+      background: rgba(124,107,255,0.12); border: 2px solid rgba(124,107,255,0.28);
+      border-radius: 999px; padding: 0.35rem 0.8rem; white-space: nowrap;
+    }
+    .read-link:active { transform: translateY(1px); }
+    @media (max-width: 520px) { .read-link span { display: none; } }
 
     /* ===== Screens ===== */
     .screen { display: none; animation: pop-in 0.35s ease; }
@@ -291,6 +299,7 @@
         <div>英语单词乐园<small>English Word Fun Land</small></div>
       </div>
       <div style="display:flex; align-items:center; gap:0.6rem;">
+        <a class="read-link" href="./reading.html" title="50 篇日常短文阅读">📖 <span>短文阅读</span></a>
         <div class="star-chip" title="你获得的星星">⭐ <span id="totalStars">0</span></div>
         <button class="sound-toggle" id="soundToggle" title="开关音效">🔔</button>
       </div>
