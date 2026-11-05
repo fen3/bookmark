@@ -34,7 +34,7 @@
       --pink: #FF5E9C;
       --green: #3EC97E;
       --font: 'Outfit', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-      --max: 960px;
+      --max: 1000px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,7 +48,6 @@
       overflow-x: hidden;
     }
 
-    /* soft ambient gradient blobs (fresh gradient mode) */
     .blob { position: fixed; border-radius: 50%; filter: blur(60px); opacity: 0.35; pointer-events: none; z-index: 0; }
     .blob-1 { width: 420px; height: 420px; background: var(--accent2); top: -140px; left: -120px; }
     .blob-2 { width: 380px; height: 380px; background: var(--yellow); bottom: -140px; right: -100px; }
@@ -86,39 +85,48 @@
     .screen.active { display: block; }
     @keyframes pop-in { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
 
-    .hero { text-align: center; margin-bottom: 1.8rem; }
+    .hero { text-align: center; margin-bottom: 1.6rem; }
     .hero h1 { font-size: 1.7rem; font-weight: 700; }
     .hero p { color: var(--muted); font-size: 0.95rem; margin-top: 0.3rem; }
+    .hero .total { color: var(--purple); font-weight: 700; }
 
     /* ===== Category grid ===== */
-    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 0.85rem; }
     .cat-card {
-      position: relative; border: 2px solid transparent; border-radius: 22px;
-      padding: 1.4rem 1rem 1.1rem; text-align: center; cursor: pointer;
+      position: relative; border: 2px solid transparent; border-radius: 20px;
+      padding: 1.05rem 0.7rem 0.9rem; text-align: center; cursor: pointer;
       background: rgba(255,255,255,0.8); backdrop-filter: blur(8px);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      transition: transform 0.15s ease;
       color: inherit; font-family: inherit;
     }
     .cat-card:hover { transform: translateY(-4px); }
     .cat-card:active { transform: translateY(0); }
-    .cat-card .emoji { font-size: 2.6rem; display: block; margin-bottom: 0.4rem; }
-    .cat-card .name { font-weight: 700; font-size: 1.08rem; }
-    .cat-card .en { font-size: 0.8rem; color: var(--muted); text-transform: capitalize; }
-    .cat-card .stars { font-size: 0.85rem; margin-top: 0.4rem; min-height: 1.2em; }
-    .cat-card.c1 { --cc: var(--accent); } .cat-card.c2 { --cc: var(--pink); }
-    .cat-card.c3 { --cc: var(--purple); } .cat-card.c4 { --cc: var(--accent2); }
-    .cat-card.c5 { --cc: #F9A826; } .cat-card.c6 { --cc: var(--blue); }
+    .cat-card .emoji { font-size: 2.1rem; display: block; margin-bottom: 0.25rem; line-height: 1.3; }
+    .cat-card .name { font-weight: 700; font-size: 1rem; }
+    .cat-card .en { font-size: 0.72rem; color: var(--muted); }
+    .cat-card .count { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
+    .cat-card .stars { font-size: 0.8rem; margin-top: 0.3rem; min-height: 1.1em; color: #E8A200; }
     .cat-card::before {
-      content: ''; position: absolute; inset: 0; border-radius: 22px;
+      content: ''; position: absolute; inset: 0; border-radius: 20px;
       background: var(--cc); opacity: 0.12; z-index: -1;
     }
-    .cat-card { border-color: color-mix(in srgb, var(--cc) 45%, transparent); box-shadow: 0 5px 0 color-mix(in srgb, var(--cc) 30%, transparent); }
-    .cat-card .name, .cat-card .emoji { color: color-mix(in srgb, var(--cc) 80%, var(--ink)); }
-    .cat-card .en { color: var(--muted); }
-    .cat-card .stars { color: #E8A200; }
+    .cat-card {
+      border-color: color-mix(in srgb, var(--cc) 45%, transparent);
+      box-shadow: 0 5px 0 color-mix(in srgb, var(--cc) 28%, transparent);
+    }
+    .cat-card .name, .cat-card .emoji { color: color-mix(in srgb, var(--cc) 82%, var(--ink)); }
+
+    .cat-card.challenge {
+      grid-column: 1 / -1; display: flex; align-items: center; gap: 1rem;
+      text-align: left; padding: 1.1rem 1.4rem;
+      background: linear-gradient(135deg, rgba(124,107,255,0.16), rgba(78,205,196,0.16));
+    }
+    .cat-card.challenge .emoji { font-size: 2.3rem; margin: 0; }
+    .cat-card.challenge .name { font-size: 1.1rem; }
+    .cat-card.challenge .arrow { margin-left: auto; font-size: 1.3rem; font-weight: 700; }
 
     .howto {
-      margin-top: 1.6rem; text-align: center; color: var(--muted); font-size: 0.88rem;
+      margin-top: 1.5rem; text-align: center; color: var(--muted); font-size: 0.88rem;
       background: rgba(255,255,255,0.6); border-radius: 16px; padding: 0.8rem 1rem; border: 1px dashed var(--rule);
     }
 
@@ -134,11 +142,16 @@
     .btn.accent { background: linear-gradient(135deg, var(--accent), var(--pink)); box-shadow: 0 4px 0 rgba(214, 51, 108, 0.35); }
     .btn.teal { background: linear-gradient(135deg, var(--accent2), #2BB3A3); box-shadow: 0 4px 0 rgba(20, 130, 120, 0.35); }
     .btn.ghost { background: var(--bg2); color: var(--ink); border: 2px solid var(--rule); box-shadow: 0 4px 0 rgba(93,78,178,0.12); }
-    .mode-title { font-size: 1.3rem; font-weight: 700; }
-    .mode-title small { display: block; font-size: 0.8rem; color: var(--muted); font-weight: 400; }
+    .mode-title { font-size: 1.25rem; font-weight: 700; }
+    .mode-title small { display: block; font-size: 0.78rem; color: var(--muted); font-weight: 400; }
+    .wcount {
+      display: inline-block; margin-left: 0.4rem; font-size: 0.72rem; font-weight: 700;
+      color: var(--purple); background: rgba(132,94,194,0.12); padding: 0.1rem 0.55rem; border-radius: 999px;
+      vertical-align: middle;
+    }
 
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
-    .wcard { perspective: 900px; height: 190px; cursor: pointer; }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.85rem; }
+    .wcard { perspective: 900px; height: 178px; cursor: pointer; }
     .wcard-inner {
       position: relative; width: 100%; height: 100%;
       transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4, 0.1, 0.2, 1.2);
@@ -146,29 +159,32 @@
     .wcard.flipped .wcard-inner { transform: rotateY(180deg); }
     .wface {
       position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
-      border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 0.35rem; padding: 0.8rem; text-align: center;
+      border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0.3rem; padding: 0.7rem 0.5rem; text-align: center;
       border: 2px solid var(--rule); background: rgba(255,255,255,0.85);
       box-shadow: 0 5px 0 rgba(93, 78, 178, 0.1);
     }
-    .wface.front .emoji { font-size: 3rem; }
-    .wface.front .word { font-size: 1.3rem; font-weight: 700; }
-    .wface.front .hint { font-size: 0.72rem; color: var(--muted); }
+    .wface.front .emoji { font-size: 2.6rem; line-height: 1.2; }
+    .letter {
+      width: 62px; height: 62px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 1.7rem; font-weight: 700; color: #fff;
+      background: linear-gradient(135deg, var(--accent2), var(--blue));
+      box-shadow: 0 3px 0 rgba(50,90,170,0.25);
+    }
+    .wface.front .word { font-size: 1.12rem; font-weight: 700; line-height: 1.25; }
+    .wface.front .hint { font-size: 0.68rem; color: var(--muted); }
     .wface.back { transform: rotateY(180deg); }
-    .wface.back .word { font-size: 1.25rem; font-weight: 700; }
-    .wface.back .ipa { font-size: 0.85rem; color: var(--blue); }
-    .wface.back .zh { font-size: 1.05rem; color: var(--ink); }
+    .wface.back .word { font-size: 1.05rem; font-weight: 700; line-height: 1.25; }
+    .wface.back .ipa { font-size: 0.78rem; color: var(--blue); }
+    .wface.back .zh { font-size: 0.98rem; }
     .say-btn {
-      margin-top: 0.3rem; border: none; cursor: pointer; font-family: inherit;
-      width: 44px; height: 44px; border-radius: 50%; font-size: 1.2rem;
+      margin-top: 0.2rem; border: none; cursor: pointer; font-family: inherit;
+      width: 38px; height: 38px; border-radius: 50%; font-size: 1rem;
       background: linear-gradient(135deg, var(--accent2), #2BB3A3); color: #fff;
       box-shadow: 0 3px 0 rgba(20,130,120,0.4);
       display: flex; align-items: center; justify-content: center;
     }
     .say-btn:active { transform: translateY(2px); box-shadow: none; }
-    .wface.back.c-say { background: rgba(255,255,255,0.85); }
-
-    .learn-actions { display: flex; gap: 0.8rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
 
     /* ===== Quiz mode ===== */
     .quiz-progress { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.2rem; }
@@ -197,10 +213,11 @@
     .opt {
       font-family: inherit; cursor: pointer; font-size: 1.15rem; font-weight: 700; color: var(--ink);
       background: var(--bg2); border: 2px solid var(--rule); border-radius: 16px;
-      padding: 1rem 0.8rem; box-shadow: 0 4px 0 rgba(93, 78, 178, 0.12);
+      padding: 0.9rem 0.8rem; box-shadow: 0 4px 0 rgba(93, 78, 178, 0.12);
       transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
-      min-height: 64px;
+      min-height: 64px; line-height: 1.3;
     }
+    .opt .opt-emoji { font-size: 1.5rem; display: block; line-height: 1.2; }
     .opt:hover { transform: translateY(-2px); }
     .opt:active { transform: translateY(2px); box-shadow: none; }
     .opt.correct { background: #E7F9EE; border-color: var(--green); color: #1c7c47; }
@@ -208,11 +225,10 @@
     .opt:disabled { cursor: default; opacity: 0.92; }
     @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 50%{transform:translateX(6px)} 75%{transform:translateX(-4px)} }
 
-    .q-feedback { margin-top: 1rem; font-weight: 700; font-size: 1.05rem; min-height: 1.6em; }
+    .q-feedback { margin-top: 1rem; font-weight: 700; font-size: 1.02rem; min-height: 1.6em; }
     .q-feedback.good { color: var(--green); }
     .q-feedback.bad { color: #e05656; }
 
-    /* result */
     .result-card { text-align: center; background: rgba(255,255,255,0.9); border: 2px solid var(--rule); border-radius: 24px; padding: 2.2rem 1.5rem; box-shadow: 0 6px 0 rgba(93,78,178,0.08); }
     .result-emoji { font-size: 4.2rem; }
     .result-title { font-size: 1.5rem; font-weight: 700; margin: 0.5rem 0 0.2rem; }
@@ -221,26 +237,29 @@
     .result-stars .dim { opacity: 0.25; filter: grayscale(1); }
     .result-actions { display: flex; gap: 0.9rem; justify-content: center; flex-wrap: wrap; }
 
-    /* confetti */
     .confetti { position: fixed; top: -20px; z-index: 50; width: 10px; height: 14px; pointer-events: none; animation: fall linear forwards; }
     @keyframes fall { to { transform: translateY(105vh) rotate(720deg); opacity: 0.9; } }
 
     footer.credit { text-align: center; margin-top: 2.5rem; color: var(--muted); font-size: 0.78rem; }
 
-    /* responsive */
     @media (max-width: 700px) {
-      .cat-grid { grid-template-columns: repeat(2, 1fr); }
+      .cat-grid { grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
       .hero h1 { font-size: 1.35rem; }
       .q-word { font-size: 1.7rem; }
-      .opts { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
-      .opt { font-size: 1rem; padding: 0.8rem 0.5rem; min-height: 56px; }
-      .cards-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
-      .wcard { height: 170px; }
+      .opts { gap: 0.6rem; }
+      .opt { font-size: 1rem; padding: 0.75rem 0.5rem; min-height: 56px; }
+      .cat-card { padding: 0.85rem 0.4rem 0.7rem; border-radius: 16px; }
+      .cat-card .emoji { font-size: 1.8rem; }
+      .cat-card .name { font-size: 0.9rem; }
+      .cat-card .en { display: none; }
+      .cat-card.challenge { grid-column: 1 / -1; }
+      .cards-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.65rem; }
+      .wcard { height: 160px; }
     }
     @media (max-width: 400px) {
-      .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
-      .cat-card { padding: 1rem 0.6rem; }
-      .cat-card .emoji { font-size: 2.1rem; }
+      .cat-grid { grid-template-columns: repeat(2, 1fr); }
+      .wcard { height: 150px; }
+      .wface.front .word { font-size: 1rem; }
     }
   </style>
 </head>
@@ -265,7 +284,7 @@
     <section class="screen active" id="screen-home">
       <div class="hero">
         <h1>你好呀，小朋友！👋</h1>
-        <p>选一个你喜欢的主题，开始快乐的单词之旅吧～</p>
+        <p>小学全量词汇 <span class="total" id="wordTotal">0</span> 词 · 选一个主题开始学习吧～</p>
       </div>
       <div class="cat-grid" id="catGrid"></div>
       <div class="howto">💡 先点「学一学」翻卡片、听发音，再点「练一练」答题赢星星！</div>
@@ -323,69 +342,784 @@
   (function () {
     'use strict';
 
-    /* ================= Data ================= */
-    var DATA = {
-      animals: { name: '动物', en: 'Animals', icon: '🦁', color: 'c1', words: [
-        { w: 'cat', ipa: '/kæt/', zh: '小猫', e: '🐱' },
-        { w: 'dog', ipa: '/dɒɡ/', zh: '小狗', e: '🐶' },
-        { w: 'bird', ipa: '/bɜːd/', zh: '小鸟', e: '🐦' },
-        { w: 'fish', ipa: '/fɪʃ/', zh: '小鱼', e: '🐟' },
-        { w: 'rabbit', ipa: '/ˈræbɪt/', zh: '兔子', e: '🐰' },
-        { w: 'tiger', ipa: '/ˈtaɪɡə/', zh: '老虎', e: '🐯' },
-        { w: 'elephant', ipa: '/ˈelɪfənt/', zh: '大象', e: '🐘' },
-        { w: 'monkey', ipa: '/ˈmʌŋki/', zh: '猴子', e: '🐵' }
-      ]},
-      fruits: { name: '水果', en: 'Fruits', icon: '🍎', color: 'c2', words: [
-        { w: 'apple', ipa: '/ˈæpl/', zh: '苹果', e: '🍎' },
-        { w: 'banana', ipa: '/bəˈnɑːnə/', zh: '香蕉', e: '🍌' },
-        { w: 'orange', ipa: '/ˈɒrɪndʒ/', zh: '橙子', e: '🍊' },
-        { w: 'grape', ipa: '/ɡreɪp/', zh: '葡萄', e: '🍇' },
-        { w: 'watermelon', ipa: '/ˈwɔːtəmelən/', zh: '西瓜', e: '🍉' },
-        { w: 'strawberry', ipa: '/ˈstrɔːbəri/', zh: '草莓', e: '🍓' },
-        { w: 'peach', ipa: '/piːtʃ/', zh: '桃子', e: '🍑' },
-        { w: 'mango', ipa: '/ˈmæŋɡəʊ/', zh: '芒果', e: '🥭' }
-      ]},
-      colors: { name: '颜色', en: 'Colors', icon: '🎨', color: 'c3', words: [
-        { w: 'red', ipa: '/red/', zh: '红色', e: '🟥' },
-        { w: 'blue', ipa: '/bluː/', zh: '蓝色', e: '🟦' },
-        { w: 'yellow', ipa: '/ˈjeləʊ/', zh: '黄色', e: '🟨' },
-        { w: 'green', ipa: '/ɡriːn/', zh: '绿色', e: '🟩' },
-        { w: 'purple', ipa: '/ˈpɜːpl/', zh: '紫色', e: '🟪' },
-        { w: 'orange', ipa: '/ˈɒrɪndʒ/', zh: '橙色', e: '🟧' },
-        { w: 'pink', ipa: '/pɪŋk/', zh: '粉色', e: '🌸' },
-        { w: 'black', ipa: '/blæk/', zh: '黑色', e: '⬛' }
-      ]},
-      numbers: { name: '数字', en: 'Numbers', icon: '🔢', color: 'c4', words: [
-        { w: 'one', ipa: '/wʌn/', zh: '一', e: '1️⃣' },
-        { w: 'two', ipa: '/tuː/', zh: '二', e: '2️⃣' },
-        { w: 'three', ipa: '/θriː/', zh: '三', e: '3️⃣' },
-        { w: 'four', ipa: '/fɔː/', zh: '四', e: '4️⃣' },
-        { w: 'five', ipa: '/faɪv/', zh: '五', e: '5️⃣' },
-        { w: 'six', ipa: '/sɪks/', zh: '六', e: '6️⃣' },
-        { w: 'seven', ipa: '/ˈsevn/', zh: '七', e: '7️⃣' },
-        { w: 'eight', ipa: '/eɪt/', zh: '八', e: '8️⃣' }
-      ]},
-      body: { name: '身体', en: 'Body', icon: '🖐️', color: 'c5', words: [
-        { w: 'eye', ipa: '/aɪ/', zh: '眼睛', e: '👁️' },
-        { w: 'ear', ipa: '/ɪə/', zh: '耳朵', e: '👂' },
-        { w: 'nose', ipa: '/nəʊz/', zh: '鼻子', e: '👃' },
-        { w: 'mouth', ipa: '/maʊθ/', zh: '嘴巴', e: '👄' },
-        { w: 'hand', ipa: '/hænd/', zh: '手', e: '✋' },
-        { w: 'foot', ipa: '/fʊt/', zh: '脚', e: '🦶' },
-        { w: 'head', ipa: '/hed/', zh: '头', e: '🙂' },
-        { w: 'hair', ipa: '/heə/', zh: '头发', e: '👱' }
-      ]},
-      food: { name: '食物', en: 'Food', icon: '🍚', color: 'c6', words: [
-        { w: 'rice', ipa: '/raɪs/', zh: '米饭', e: '🍚' },
-        { w: 'noodles', ipa: '/ˈnuːdlz/', zh: '面条', e: '🍜' },
-        { w: 'egg', ipa: '/eɡ/', zh: '鸡蛋', e: '🥚' },
-        { w: 'milk', ipa: '/mɪlk/', zh: '牛奶', e: '🥛' },
-        { w: 'bread', ipa: '/bred/', zh: '面包', e: '🍞' },
-        { w: 'cake', ipa: '/keɪk/', zh: '蛋糕', e: '🍰' },
-        { w: 'juice', ipa: '/dʒuːs/', zh: '果汁', e: '🧃' },
-        { w: 'water', ipa: '/ˈwɔːtə/', zh: '水', e: '💧' }
-      ]}
+    /* =========================================================
+       词库：小学常用词汇（约 670 词）
+       每行格式：单词|音标|中文|表情（表情可省略）
+       ========================================================= */
+    var RAW = {
+      animals: ['动物', 'Animals', '🦁', '#FF6B6B', [
+        'cat|/kæt/|猫|🐱',
+        'dog|/dɒɡ/|狗|🐶',
+        'bird|/bɜːd/|鸟|🐦',
+        'fish|/fɪʃ/|鱼|🐟',
+        'rabbit|/ˈræbɪt/|兔子|🐰',
+        'tiger|/ˈtaɪɡə/|老虎|🐯',
+        'elephant|/ˈelɪfənt/|大象|🐘',
+        'monkey|/ˈmʌŋki/|猴子|🐵',
+        'panda|/ˈpændə/|熊猫|🐼',
+        'lion|/ˈlaɪən/|狮子|🦁',
+        'bear|/beə/|熊|🐻',
+        'horse|/hɔːs/|马|🐴',
+        'cow|/kaʊ/|奶牛|🐮',
+        'pig|/pɪɡ/|猪|🐷',
+        'sheep|/ʃiːp/|绵羊|🐑',
+        'duck|/dʌk/|鸭子|🦆',
+        'chicken|/ˈtʃɪkɪn/|小鸡|🐔',
+        'goose|/ɡuːs/|鹅|🦢',
+        'mouse|/maʊs/|老鼠|🐭',
+        'snake|/sneɪk/|蛇|🐍',
+        'frog|/frɒɡ/|青蛙|🐸',
+        'wolf|/wʊlf/|狼|🐺',
+        'fox|/fɒks/|狐狸|🦊',
+        'deer|/dɪə/|鹿|🦌',
+        'giraffe|/dʒɪˈrɑːf/|长颈鹿|🦒',
+        'zebra|/ˈziːbrə/|斑马|🦓',
+        'koala|/kəʊˈɑːlə/|考拉|🐨',
+        'kangaroo|/ˌkæŋɡəˈruː/|袋鼠|🦘',
+        'penguin|/ˈpeŋɡwɪn/|企鹅|🐧',
+        'whale|/weɪl/|鲸鱼|🐳',
+        'dolphin|/ˈdɒlfɪn/|海豚|🐬',
+        'shark|/ʃɑːk/|鲨鱼|🦈',
+        'crab|/kræb/|螃蟹|🦀',
+        'spider|/ˈspaɪdə/|蜘蛛|🕷️',
+        'bee|/biː/|蜜蜂|🐝',
+        'butterfly|/ˈbʌtəflaɪ/|蝴蝶|🦋',
+        'ant|/ænt/|蚂蚁|🐜',
+        'snail|/sneɪl/|蜗牛|🐌',
+        'turtle|/ˈtɜːtl/|乌龟|🐢',
+        'goat|/ɡəʊt/|山羊|🐐',
+        'camel|/ˈkæml/|骆驼|🐫',
+        'owl|/aʊl/|猫头鹰|🦉',
+        'dragon|/ˈdræɡən/|龙|🐉',
+        'ladybug|/ˈleɪdibʌɡ/|瓢虫|🐞',
+        'hen|/hen/|母鸡|',
+        'donkey|/ˈdɒŋki/|驴|',
+        'worm|/wɜːm/|虫子|',
+        'mosquito|/məˈskiːtəʊ/|蚊子|🦟',
+        'squirrel|/ˈskwɪrəl/|松鼠|🐿️',
+        'bull|/bʊl/|公牛|🐂'
+      ].join('\n')],
+
+      fruits: ['水果', 'Fruits', '🍎', '#FF5E9C', [
+        'apple|/ˈæpl/|苹果|🍎',
+        'banana|/bəˈnɑːnə/|香蕉|🍌',
+        'orange|/ˈɒrɪndʒ/|橙子|🍊',
+        'grape|/ɡreɪp/|葡萄|🍇',
+        'watermelon|/ˈwɔːtəmelən/|西瓜|🍉',
+        'strawberry|/ˈstrɔːbəri/|草莓|🍓',
+        'peach|/piːtʃ/|桃子|🍑',
+        'pear|/peə/|梨|🍐',
+        'pineapple|/ˈpaɪnæpl/|菠萝|🍍',
+        'mango|/ˈmæŋɡəʊ/|芒果|🥭',
+        'lemon|/ˈlemən/|柠檬|🍋',
+        'cherry|/ˈtʃeri/|樱桃|🍒',
+        'coconut|/ˈkəʊkənʌt/|椰子|🥥',
+        'kiwi|/ˈkiːwiː/|猕猴桃|🥝',
+        'blueberry|/ˈbluːbəri/|蓝莓|🫐',
+        'melon|/ˈmelən/|甜瓜|🍈',
+        'avocado|/ˌævəˈkɑːdəʊ/|牛油果|🥑',
+        'grapefruit|/ˈɡreɪpfruːt/|柚子|',
+        'apricot|/ˈæprɪkɒt/|杏|',
+        'plum|/plʌm/|李子|'
+      ].join('\n')],
+
+      vegetables: ['蔬菜', 'Vegetables', '🥕', '#3EC97E', [
+        'tomato|/təˈmɑːtəʊ/|西红柿|🍅',
+        'potato|/pəˈteɪtəʊ/|土豆|🥔',
+        'carrot|/ˈkærət/|胡萝卜|🥕',
+        'onion|/ˈʌnjən/|洋葱|🧅',
+        'cabbage|/ˈkæbɪdʒ/|卷心菜|🥬',
+        'cucumber|/ˈkjuːkʌmbə/|黄瓜|🥒',
+        'pumpkin|/ˈpʌmpkɪn/|南瓜|🎃',
+        'corn|/kɔːn/|玉米|🌽',
+        'broccoli|/ˈbrɒkəli/|西兰花|🥦',
+        'mushroom|/ˈmʌʃruːm/|蘑菇|🍄',
+        'eggplant|/ˈeɡplɑːnt/|茄子|🍆',
+        'pepper|/ˈpepə/|辣椒|🫑',
+        'garlic|/ˈɡɑːlɪk/|大蒜|🧄',
+        'bean|/biːn/|豆子|🫘',
+        'pea|/piː/|豌豆|🫛',
+        'sweet potato|/swiːt pəˈteɪtəʊ/|红薯|🍠',
+        'vegetable|/ˈvedʒtəbl/|蔬菜|',
+        'celery|/ˈseləri/|芹菜|',
+        'spinach|/ˈspɪnɪtʃ/|菠菜|',
+        'radish|/ˈrædɪʃ/|萝卜|',
+        'ginger|/ˈdʒɪŋɡə/|生姜|'
+      ].join('\n')],
+
+      food: ['食物饮料', 'Food & Drinks', '🍚', '#F9A826', [
+        'rice|/raɪs/|米饭|🍚',
+        'noodles|/ˈnuːdlz/|面条|🍜',
+        'egg|/eɡ/|鸡蛋|🥚',
+        'milk|/mɪlk/|牛奶|🥛',
+        'bread|/bred/|面包|🍞',
+        'cake|/keɪk/|蛋糕|🍰',
+        'juice|/dʒuːs/|果汁|🧃',
+        'water|/ˈwɔːtə/|水|💧',
+        'hamburger|/ˈhæmbɜːɡə/|汉堡包|🍔',
+        'hot dog|/hɒt dɒɡ/|热狗|🌭',
+        'sandwich|/ˈsændwɪdʒ/|三明治|🥪',
+        'pizza|/ˈpɪtsə/|披萨|🍕',
+        'salad|/ˈsæləd/|沙拉|🥗',
+        'soup|/suːp/|汤|🥣',
+        'meat|/miːt/|肉|🥩',
+        'beef|/biːf/|牛肉|🍖',
+        'pork|/pɔːk/|猪肉|🥓',
+        'cheese|/tʃiːz/|奶酪|🧀',
+        'butter|/ˈbʌtə/|黄油|🧈',
+        'honey|/ˈhʌni/|蜂蜜|🍯',
+        'candy|/ˈkændi/|糖果|🍬',
+        'chocolate|/ˈtʃɒklət/|巧克力|🍫',
+        'ice cream|/aɪs kriːm/|冰淇淋|🍨',
+        'cookie|/ˈkʊki/|曲奇饼干|🍪',
+        'doughnut|/ˈdəʊnʌt/|甜甜圈|🍩',
+        'popcorn|/ˈpɒpkɔːn/|爆米花|🍿',
+        'tea|/tiː/|茶|🍵',
+        'coffee|/ˈkɒfi/|咖啡|☕',
+        'dumpling|/ˈdʌmplɪŋ/|饺子|🥟',
+        'pancake|/ˈpænkeɪk/|煎饼|🥞',
+        'pie|/paɪ/|馅饼|🥧',
+        'salt|/sɔːlt/|盐|🧂',
+        'breakfast|/ˈbrekfəst/|早餐|🍳',
+        'lunch|/lʌntʃ/|午餐|🍱',
+        'dinner|/ˈdɪnə/|晚餐|🍽️',
+        'chips|/tʃɪps/|薯条|🍟',
+        'yogurt|/ˈjəʊɡət/|酸奶|',
+        'soda|/ˈsəʊdə/|汽水|🥤',
+        'biscuit|/ˈbɪskɪt/|饼干|',
+        'ham|/hæm/|火腿|',
+        'porridge|/ˈpɒrɪdʒ/|米粥|',
+        'sugar|/ˈʃʊɡə/|糖|'
+      ].join('\n')],
+
+      colors: ['颜色', 'Colors', '🎨', '#845EC2', [
+        'red|/red/|红色|🟥',
+        'blue|/bluː/|蓝色|🟦',
+        'yellow|/ˈjeləʊ/|黄色|🟨',
+        'green|/ɡriːn/|绿色|🟩',
+        'purple|/ˈpɜːpl/|紫色|🟪',
+        'orange|/ˈɒrɪndʒ/|橙色|🟧',
+        'pink|/pɪŋk/|粉色|🌸',
+        'black|/blæk/|黑色|⬛',
+        'white|/waɪt/|白色|⬜',
+        'brown|/braʊn/|棕色|🟫',
+        'grey|/ɡreɪ/|灰色|',
+        'gold|/ɡəʊld/|金色|🥇',
+        'silver|/ˈsɪlvə/|银色|🥈',
+        'rainbow|/ˈreɪnbəʊ/|彩虹|🌈',
+        'color|/ˈkɒlə/|颜色|🎨'
+      ].join('\n')],
+
+      numbers: ['数字', 'Numbers', '🔢', '#5B8DEF', [
+        'zero|/ˈzɪərəʊ/|零|0️⃣',
+        'one|/wʌn/|一|1️⃣',
+        'two|/tuː/|二|2️⃣',
+        'three|/θriː/|三|3️⃣',
+        'four|/fɔː/|四|4️⃣',
+        'five|/faɪv/|五|5️⃣',
+        'six|/sɪks/|六|6️⃣',
+        'seven|/ˈsevn/|七|7️⃣',
+        'eight|/eɪt/|八|8️⃣',
+        'nine|/naɪn/|九|9️⃣',
+        'ten|/ten/|十|🔟',
+        'eleven|/ɪˈlevn/|十一|',
+        'twelve|/twelv/|十二|',
+        'thirteen|/ˌθɜːˈtiːn/|十三|',
+        'fourteen|/ˌfɔːˈtiːn/|十四|',
+        'fifteen|/ˌfɪfˈtiːn/|十五|',
+        'sixteen|/ˌsɪkˈstiːn/|十六|',
+        'seventeen|/ˌsevnˈtiːn/|十七|',
+        'eighteen|/ˌeɪˈtiːn/|十八|',
+        'nineteen|/ˌnaɪnˈtiːn/|十九|',
+        'twenty|/ˈtwenti/|二十|',
+        'thirty|/ˈθɜːti/|三十|',
+        'forty|/ˈfɔːti/|四十|',
+        'fifty|/ˈfɪfti/|五十|',
+        'sixty|/ˈsɪksti/|六十|',
+        'seventy|/ˈsevnti/|七十|',
+        'eighty|/ˈeɪti/|八十|',
+        'ninety|/ˈnaɪnti/|九十|',
+        'hundred|/ˈhʌndrəd/|一百|',
+        'number|/ˈnʌmbə/|数字|#️⃣'
+      ].join('\n')],
+
+      body: ['身体', 'Body', '💪', '#FF8A5B', [
+        'eye|/aɪ/|眼睛|👁️',
+        'ear|/ɪə/|耳朵|👂',
+        'nose|/nəʊz/|鼻子|👃',
+        'mouth|/maʊθ/|嘴巴|👄',
+        'hand|/hænd/|手|✋',
+        'foot|/fʊt/|脚|🦶',
+        'head|/hed/|头|🙂',
+        'hair|/heə/|头发|👱',
+        'face|/feɪs/|脸|😊',
+        'arm|/ɑːm/|手臂|💪',
+        'leg|/leɡ/|腿|🦵',
+        'finger|/ˈfɪŋɡə/|手指|👆',
+        'tooth|/tuːθ/|牙齿|🦷',
+        'tongue|/tʌŋ/|舌头|👅',
+        'heart|/hɑːt/|心脏|❤️',
+        'brain|/breɪn/|大脑|🧠',
+        'bone|/bəʊn/|骨头|🦴',
+        'blood|/blʌd/|血|🩸',
+        'toe|/təʊ/|脚趾|',
+        'neck|/nek/|脖子|',
+        'shoulder|/ˈʃəʊldə/|肩膀|',
+        'back|/bæk/|背|',
+        'stomach|/ˈstʌmək/|肚子|',
+        'knee|/kniː/|膝盖|',
+        'skin|/skɪn/|皮肤|',
+        'body|/ˈbɒdi/|身体|'
+      ].join('\n')],
+
+      family: ['家庭', 'Family', '👨‍👩‍👧‍👦', '#E86A92', [
+        'father|/ˈfɑːðə/|爸爸|👨',
+        'mother|/ˈmʌðə/|妈妈|👩',
+        'brother|/ˈbrʌðə/|兄弟|👦',
+        'sister|/ˈsɪstə/|姐妹|👧',
+        'grandfather|/ˈɡrænfɑːðə/|爷爷|👴',
+        'grandmother|/ˈɡrænmʌðə/|奶奶|👵',
+        'grandpa|/ˈɡrænpɑː/|爷爷|',
+        'grandma|/ˈɡrænmɑː/|奶奶|',
+        'uncle|/ˈʌŋkl/|叔叔；舅舅|🧑',
+        'aunt|/ɔːnt/|阿姨；姑姑|',
+        'baby|/ˈbeɪbi/|婴儿|👶',
+        'family|/ˈfæməli/|家庭|👨‍👩‍👧‍👦',
+        'friend|/frend/|朋友|🧑‍🤝‍🧑',
+        'parents|/ˈpeərənts/|父母|👫',
+        'husband|/ˈhʌzbənd/|丈夫|🤵',
+        'wife|/waɪf/|妻子|👰',
+        'cousin|/ˈkʌzn/|表兄弟姐妹|',
+        'son|/sʌn/|儿子|',
+        'daughter|/ˈdɔːtə/|女儿|',
+        'nephew|/ˈnefjuː/|侄子；外甥|',
+        'niece|/niːs/|侄女；外甥女|',
+        'people|/ˈpiːpl/|人们|👥'
+      ].join('\n')],
+
+      school: ['学校', 'School', '🏫', '#7C6BFF', [
+        'teacher|/ˈtiːtʃə/|老师|🧑‍🏫',
+        'student|/ˈstjuːdənt/|学生|🧑‍🎓',
+        'school|/skuːl/|学校|🏫',
+        'classroom|/ˈklɑːsruːm/|教室|',
+        'class|/klɑːs/|班级；课|',
+        'lesson|/ˈlesn/|课|📖',
+        'homework|/ˈhəʊmwɜːk/|家庭作业|📝',
+        'blackboard|/ˈblækbɔːd/|黑板|',
+        'desk|/desk/|课桌|',
+        'chair|/tʃeə/|椅子|🪑',
+        'playground|/ˈpleɪɡraʊnd/|操场|',
+        'library|/ˈlaɪbrəri/|图书馆|📚',
+        'exam|/ɪɡˈzæm/|考试|',
+        'English|/ˈɪŋɡlɪʃ/|英语|🔤',
+        'Chinese|/ˈtʃaɪniːz/|语文；中文|',
+        'maths|/mæθs/|数学|➗',
+        'music|/ˈmjuːzɪk/|音乐|🎵',
+        'art|/ɑːt/|美术|🎨',
+        'PE|/piː eɪ/|体育|⚽',
+        'science|/ˈsaɪəns/|科学|🔬',
+        'history|/ˈhɪstəri/|历史|📜',
+        'geography|/dʒiˈɒɡrəfi/|地理|🗺️',
+        'computer|/kəmˈpjuːtə/|电脑|💻',
+        'break|/breɪk/|休息|☕',
+        'holiday|/ˈhɒlideɪ/|假期|🏖️',
+        'classmate|/ˈklɑːsmeɪt/|同学|',
+        'grade|/ɡreɪd/|年级；成绩|'
+      ].join('\n')],
+
+      stationery: ['文具', 'Stationery', '✏️', '#0FA3B1', [
+        'pen|/pen/|钢笔|🖊️',
+        'pencil|/ˈpensl/|铅笔|✏️',
+        'ruler|/ˈruːlə/|尺子|📏',
+        'book|/bʊk/|书|📖',
+        'notebook|/ˈnəʊtbʊk/|笔记本|📓',
+        'bag|/bæɡ/|书包|🎒',
+        'crayon|/ˈkreɪɒn/|蜡笔|🖍️',
+        'scissors|/ˈsɪzəz/|剪刀|✂️',
+        'paper|/ˈpeɪpə/|纸|📄',
+        'map|/mæp/|地图|🗺️',
+        'dictionary|/dɪkˈʃənəri/|字典|📕',
+        'eraser|/ɪˈreɪzə/|橡皮|',
+        'marker|/ˈmɑːkə/|马克笔|',
+        'pencil case|/ˈpensl keɪs/|铅笔盒|',
+        'sharpener|/ˈʃɑːpənə/|卷笔刀|',
+        'chalk|/tʃɔːk/|粉笔|',
+        'glue|/ɡluː/|胶水|',
+        'tape|/teɪp/|胶带|'
+      ].join('\n')],
+
+      clothes: ['衣服', 'Clothes', '👕', '#D65DB1', [
+        'shirt|/ʃɜːt/|衬衫|👕',
+        'dress|/dres/|连衣裙|👗',
+        'trousers|/ˈtraʊzəz/|裤子|👖',
+        'shorts|/ʃɔːts/|短裤|🩳',
+        'coat|/kəʊt/|外套|🧥',
+        'sweater|/ˈswetə/|毛衣|🧶',
+        'hat|/hæt/|帽子|🎩',
+        'cap|/kæp/|鸭舌帽|🧢',
+        'shoes|/ʃuːz/|鞋子|👟',
+        'socks|/sɒks/|袜子|🧦',
+        'gloves|/ɡlʌvz/|手套|🧤',
+        'scarf|/skɑːf/|围巾|🧣',
+        'glasses|/ˈɡlɑːsɪz/|眼镜|👓',
+        'umbrella|/ʌmˈbrelə/|雨伞|☂️',
+        'boots|/buːts/|靴子|🥾',
+        'tie|/taɪ/|领带|👔',
+        'ring|/rɪŋ/|戒指|💍',
+        'watch|/wɒtʃ/|手表|⌚',
+        'T-shirt|/ˈtiː ʃɜːt/|T恤衫|',
+        'skirt|/skɜːt/|短裙|',
+        'jeans|/dʒiːnz/|牛仔裤|',
+        'jacket|/ˈdʒækɪt/|夹克|',
+        'belt|/belt/|腰带|',
+        'uniform|/ˈjuːnɪfɔːm/|制服|'
+      ].join('\n')],
+
+      weather: ['天气', 'Weather', '🌤️', '#4ECDC4', [
+        'sunny|/ˈsʌni/|晴朗的|☀️',
+        'rainy|/ˈreɪni/|下雨的|🌧️',
+        'cloudy|/ˈklaʊdi/|多云的|☁️',
+        'windy|/ˈwɪndi/|有风的|🌬️',
+        'snowy|/ˈsnəʊi/|下雪的|❄️',
+        'hot|/hɒt/|热的|🔥',
+        'cold|/kəʊld/|冷的|🥶',
+        'weather|/ˈweðə/|天气|🌤️',
+        'storm|/stɔːm/|暴风雨|⛈️',
+        'fog|/fɒɡ/|雾|🌫️',
+        'thunder|/ˈθʌndə/|雷|⚡',
+        'degree|/dɪˈɡriː/|度|🌡️',
+        'warm|/wɔːm/|温暖的|',
+        'cool|/kuːl/|凉爽的|',
+        'rain|/reɪn/|雨|',
+        'snow|/snəʊ/|雪|',
+        'wind|/wɪnd/|风|',
+        'cloud|/klaʊd/|云|',
+        'sun|/sʌn/|太阳|'
+      ].join('\n')],
+
+      time: ['时间季节', 'Time', '⏰', '#FF9671', [
+        'morning|/ˈmɔːnɪŋ/|早上|🌅',
+        'afternoon|/ˌɑːftəˈnuːn/|下午|🌇',
+        'evening|/ˈiːvnɪŋ/|傍晚|🌆',
+        'night|/naɪt/|夜晚|🌃',
+        'today|/təˈdeɪ/|今天|📅',
+        'tomorrow|/təˈmɒrəʊ/|明天|📆',
+        'yesterday|/ˈjestədeɪ/|昨天|',
+        'day|/deɪ/|天；白天|',
+        'week|/wiːk/|星期；周|',
+        'month|/mʌnθ/|月|',
+        'year|/jɪə/|年|',
+        'Monday|/ˈmʌndeɪ/|星期一|',
+        'Tuesday|/ˈtjuːzdeɪ/|星期二|',
+        'Wednesday|/ˈwednəzdeɪ/|星期三|',
+        'Thursday|/ˈθɜːzdeɪ/|星期四|',
+        'Friday|/ˈfraɪdeɪ/|星期五|',
+        'Saturday|/ˈsætədeɪ/|星期六|',
+        'Sunday|/ˈsʌndeɪ/|星期日|',
+        'January|/ˈdʒænjuəri/|一月|',
+        'February|/ˈfebruəri/|二月|',
+        'March|/mɑːtʃ/|三月|',
+        'April|/ˈeɪprəl/|四月|',
+        'May|/meɪ/|五月|',
+        'June|/dʒuːn/|六月|',
+        'July|/dʒʊˈlaɪ/|七月|',
+        'August|/ˈɔːɡəst/|八月|',
+        'September|/sepˈtembə/|九月|',
+        'October|/ɒkˈtəʊbə/|十月|',
+        'November|/nəʊˈvembə/|十一月|',
+        'December|/dɪˈsembə/|十二月|',
+        'spring|/sprɪŋ/|春天|🌸',
+        'summer|/ˈsʌmə/|夏天|🏖️',
+        'autumn|/ˈɔːtəm/|秋天|🍂',
+        'winter|/ˈwɪntə/|冬天|⛄',
+        'season|/ˈsiːzn/|季节|',
+        'birthday|/ˈbɜːθdeɪ/|生日|🎂',
+        'weekend|/ˈwiːkend/|周末|',
+        'hour|/ˈaʊə/|小时|⏰',
+        'minute|/ˈmɪnɪt/|分钟|⏱️',
+        "o'clock|/əˈklɒk/|点钟|🕐"
+      ].join('\n')],
+
+      transport: ['交通', 'Transport', '🚗', '#4D9DE0', [
+        'car|/kɑː/|小汽车|🚗',
+        'bus|/bʌs/|公共汽车|🚌',
+        'bike|/baɪk/|自行车|🚲',
+        'train|/treɪn/|火车|🚂',
+        'plane|/pleɪn/|飞机|✈️',
+        'ship|/ʃɪp/|轮船|🚢',
+        'boat|/bəʊt/|小船|⛵',
+        'taxi|/ˈtæksi/|出租车|🚕',
+        'truck|/trʌk/|卡车|🚚',
+        'subway|/ˈsʌbweɪ/|地铁|🚇',
+        'motorbike|/ˈməʊtəbaɪk/|摩托车|🏍️',
+        'helicopter|/ˈhelɪkɒptə/|直升机|🚁',
+        'rocket|/ˈrɒkɪt/|火箭|🚀',
+        'ambulance|/ˈæmbjələns/|救护车|🚑',
+        'fire engine|/ˈfaɪə endʒɪn/|消防车|🚒',
+        'police car|/pəˈliːs kɑː/|警车|🚓',
+        'tractor|/ˈtræktə/|拖拉机|🚜',
+        'scooter|/ˈskuːtə/|滑板车|🛴'
+      ].join('\n')],
+
+      places: ['地点', 'Places', '🏠', '#6BBF59', [
+        'home|/həʊm/|家|🏠',
+        'house|/haʊs/|房子|🏡',
+        'park|/pɑːk/|公园|🏞️',
+        'zoo|/zuː/|动物园|🦁',
+        'hospital|/ˈhɒspɪtl/|医院|🏥',
+        'bank|/bæŋk/|银行|🏦',
+        'shop|/ʃɒp/|商店|🛍️',
+        'supermarket|/ˈsuːpəmɑːkɪt/|超市|🛒',
+        'restaurant|/ˈrestrɒnt/|餐馆|🍽️',
+        'cinema|/ˈsɪnəmə/|电影院|🎬',
+        'museum|/mjuˈziːəm/|博物馆|🏛️',
+        'hotel|/həʊˈtel/|旅馆|🏨',
+        'station|/ˈsteɪʃn/|车站|🚉',
+        'airport|/ˈeəpɔːt/|机场|✈️',
+        'farm|/fɑːm/|农场|🚜',
+        'beach|/biːtʃ/|海滩|🏖️',
+        'mountain|/ˈmaʊntɪn/|山|⛰️',
+        'river|/ˈrɪvə/|河|',
+        'city|/ˈsɪti/|城市|🏙️',
+        'village|/ˈvɪlɪdʒ/|村庄|🏘️',
+        'bridge|/brɪdʒ/|桥|🌉',
+        'garden|/ˈɡɑːdn/|花园|🌳',
+        'kitchen|/ˈkɪtʃɪn/|厨房|🍳',
+        'bathroom|/ˈbɑːθruːm/|浴室|🚿',
+        'bedroom|/ˈbedruːm/|卧室|🛏️',
+        'toilet|/ˈtɔɪlət/|厕所|🚽',
+        'lake|/leɪk/|湖|',
+        'street|/striːt/|街道|',
+        'road|/rəʊd/|马路|',
+        'living room|/ˈlɪvɪŋ ruːm/|客厅|'
+      ].join('\n')],
+
+      jobs: ['职业', 'Jobs', '👩‍⚕️', '#C86FC9', [
+        'doctor|/ˈdɒktə/|医生|👩‍⚕️',
+        'teacher|/ˈtiːtʃə/|老师|🧑‍🏫',
+        'farmer|/ˈfɑːmə/|农民|👨‍🌾',
+        'driver|/ˈdraɪvə/|司机|🚗',
+        'police officer|/pəˈliːs ˈɒfɪsə/|警察|👮',
+        'cook|/kʊk/|厨师|👨‍🍳',
+        'singer|/ˈsɪŋɡə/|歌手|🎤',
+        'dancer|/ˈdɑːnsə/|舞蹈演员|💃',
+        'artist|/ˈɑːtɪst/|艺术家|🎨',
+        'writer|/ˈraɪtə/|作家|✍️',
+        'worker|/ˈwɜːkə/|工人|👷',
+        'engineer|/ˌendʒɪˈnɪə/|工程师|👨‍🔧',
+        'pilot|/ˈpaɪlət/|飞行员|👨‍✈️',
+        'scientist|/ˈsaɪəntɪst/|科学家|👨‍🔬',
+        'dentist|/ˈdentɪst/|牙医|🦷',
+        'actor|/ˈæktə/|演员|🎭',
+        'reporter|/rɪˈpɔːtə/|记者|📰',
+        'postman|/ˈpɒstmən/|邮递员|📮',
+        'vet|/vet/|兽医|🐕',
+        'firefighter|/ˈfaɪəfaɪtə/|消防员|🧑‍🚒',
+        'businessman|/ˈbɪznəsmæn/|商人|💼',
+        'nurse|/nɜːs/|护士|',
+        'soldier|/ˈsəʊldʒə/|士兵|',
+        'waiter|/ˈweɪtə/|服务员|',
+        'job|/dʒɒb/|工作|'
+      ].join('\n')],
+
+      actions: ['动作', 'Actions', '🏃', '#2EC4B6', [
+        'run|/rʌn/|跑|🏃',
+        'jump|/dʒʌmp/|跳|🤸',
+        'swim|/swɪm/|游泳|🏊',
+        'walk|/wɔːk/|走路|🚶',
+        'sing|/sɪŋ/|唱歌|🎤',
+        'dance|/dɑːns/|跳舞|💃',
+        'read|/riːd/|阅读|📖',
+        'write|/raɪt/|写|✍️',
+        'draw|/drɔː/|画画|🎨',
+        'play|/pleɪ/|玩耍；打球|⚽',
+        'eat|/iːt/|吃|🍽️',
+        'drink|/drɪŋk/|喝|🥤',
+        'sleep|/sliːp/|睡觉|😴',
+        'wake up|/weɪk ʌp/|醒来|⏰',
+        'sit|/sɪt/|坐|🪑',
+        'stand|/stænd/|站立|🧍',
+        'listen|/ˈlɪsn/|听|👂',
+        'speak|/spiːk/|说话|🗣️',
+        'look|/lʊk/|看|👀',
+        'watch|/wɒtʃ/|观看|📺',
+        'clean|/kliːn/|打扫|🧹',
+        'wash|/wɒʃ/|洗|🧼',
+        'cook|/kʊk/|做饭|🍳',
+        'help|/help/|帮助|🤝',
+        'smile|/smaɪl/|微笑|😊',
+        'cry|/kraɪ/|哭|😢',
+        'laugh|/lɑːf/|笑|😂',
+        'ride|/raɪd/|骑|🚲',
+        'drive|/draɪv/|驾驶|🚗',
+        'climb|/klaɪm/|爬|🧗',
+        'buy|/baɪ/|买|🛒',
+        'give|/ɡɪv/|给|🎁',
+        'make|/meɪk/|制作|🔨',
+        'work|/wɜːk/|工作|💼',
+        'study|/ˈstʌdi/|学习|📚',
+        'wait|/weɪt/|等待|⏳',
+        'love|/lʌv/|爱|❤️',
+        'like|/laɪk/|喜欢|👍',
+        'see|/siː/|看见|👁️',
+        'think|/θɪŋk/|思考；认为|💭',
+        'find|/faɪnd/|找到|🔍',
+        'fly|/flaɪ/|飞|',
+        'open|/ˈəʊpn/|打开|',
+        'close|/kləʊz/|关闭|',
+        'throw|/θrəʊ/|扔|',
+        'catch|/kætʃ/|接住|',
+        'kick|/kɪk/|踢|',
+        'push|/pʊʃ/|推|',
+        'pull|/pʊl/|拉|',
+        'sell|/sel/|卖|',
+        'take|/teɪk/|拿|',
+        'put|/pʊt/|放|',
+        'come|/kʌm/|来|',
+        'go|/ɡəʊ/|去|',
+        'want|/wɒnt/|想要|',
+        'need|/niːd/|需要|',
+        'hear|/hɪə/|听见|',
+        'know|/nəʊ/|知道|',
+        'use|/juːz/|使用|',
+        'try|/traɪ/|尝试|'
+      ].join('\n')],
+
+      sports: ['运动', 'Sports', '⚽', '#FFB627', [
+        'football|/ˈfʊtbɔːl/|足球|⚽',
+        'basketball|/ˈbɑːskɪtbɔːl/|篮球|🏀',
+        'volleyball|/ˈvɒlibɔːl/|排球|🏐',
+        'tennis|/ˈtenɪs/|网球|🎾',
+        'baseball|/ˈbeɪsbɔːl/|棒球|⚾',
+        'ping-pong|/ˈpɪŋpɒŋ/|乒乓球|🏓',
+        'badminton|/ˈbædmɪntən/|羽毛球|🏸',
+        'swimming|/ˈswɪmɪŋ/|游泳|🏊',
+        'running|/ˈrʌnɪŋ/|跑步|🏃',
+        'skating|/ˈskeɪtɪŋ/|滑冰|⛸️',
+        'skiing|/ˈskiːɪŋ/|滑雪|⛷️',
+        'cycling|/ˈsaɪklɪŋ/|骑自行车|🚴',
+        'boxing|/ˈbɒksɪŋ/|拳击|🥊',
+        'golf|/ɡɒlf/|高尔夫|⛳',
+        'gymnastics|/dʒɪmˈnæstɪks/|体操|🤸',
+        'sailing|/ˈseɪlɪŋ/|帆船|⛵',
+        'sport|/spɔːt/|运动|🏅'
+      ].join('\n')],
+
+      nature: ['自然', 'Nature', '🌳', '#38B000', [
+        'moon|/muːn/|月亮|🌙',
+        'star|/stɑː/|星星|⭐',
+        'tree|/triː/|树|🌳',
+        'flower|/ˈflaʊə/|花|🌸',
+        'grass|/ɡrɑːs/|草|🌿',
+        'leaf|/liːf/|叶子|🍃',
+        'seed|/siːd/|种子|🌱',
+        'plant|/plɑːnt/|植物|🪴',
+        'forest|/ˈfɒrɪst/|森林|🌲',
+        'sea|/siː/|海|🌊',
+        'earth|/ɜːθ/|地球|🌍',
+        'world|/wɜːld/|世界|🌏',
+        'stone|/stəʊn/|石头|🪨',
+        'fire|/ˈfaɪə/|火|🔥',
+        'ice|/aɪs/|冰|🧊',
+        'light|/laɪt/|光|💡',
+        'island|/ˈaɪlənd/|岛屿|🏝️',
+        'desert|/ˈdezət/|沙漠|🏜️',
+        'jungle|/ˈdʒʌŋɡl/|丛林|🌴',
+        'sky|/skaɪ/|天空|',
+        'ocean|/ˈəʊʃn/|海洋|',
+        'sand|/sænd/|沙子|',
+        'air|/eə/|空气|',
+        'shadow|/ˈʃædəʊ/|影子|'
+      ].join('\n')],
+
+      adjectives: ['形容词', 'Adjectives', '🌟', '#FF6B9D', [
+        'happy|/ˈhæpi/|开心的|😊',
+        'sad|/sæd/|伤心的|😢',
+        'angry|/ˈæŋɡri/|生气的|😠',
+        'tired|/ˈtaɪəd/|疲倦的|😴',
+        'hungry|/ˈhʌŋɡri/|饥饿的|😋',
+        'thirsty|/ˈθɜːsti/|口渴的|🥤',
+        'beautiful|/ˈbjuːtɪfl/|美丽的|🌸',
+        'good|/ɡʊd/|好的|👍',
+        'bad|/bæd/|坏的|👎',
+        'slow|/sləʊ/|慢的|🐢',
+        'easy|/ˈiːzi/|容易的|',
+        'difficult|/ˈdɪfɪkəlt/|困难的|',
+        'quiet|/ˈkwaɪət/|安静的|🤫',
+        'loud|/laʊd/|大声的|🔊',
+        'strong|/strɒŋ/|强壮的|💪',
+        'rich|/rɪtʃ/|富有的|💰',
+        'funny|/ˈfʌni/|有趣的|😂',
+        'smart|/smɑːt/|聪明的|🧠',
+        'kind|/kaɪnd/|友善的|💗',
+        'brave|/breɪv/|勇敢的|🦁',
+        'right|/raɪt/|正确的|✅',
+        'wrong|/rɒŋ/|错误的|❌',
+        'dangerous|/ˈdeɪndʒərəs/|危险的|⚠️',
+        'delicious|/dɪˈlɪʃəs/|美味的|',
+        'wonderful|/ˈwʌndəfl/|精彩的|🌟',
+        'cute|/kjuːt/|可爱的|🥰',
+        'new|/njuː/|新的|🆕',
+        'big|/bɪɡ/|大的|',
+        'small|/smɔːl/|小的|',
+        'tall|/tɔːl/|高的|',
+        'short|/ʃɔːt/|矮的；短的|',
+        'long|/lɒŋ/|长的|',
+        'old|/əʊld/|旧的；年老的|',
+        'ugly|/ˈʌɡli/|丑陋的|',
+        'fast|/fɑːst/|快的|',
+        'dirty|/ˈdɜːti/|脏的|',
+        'weak|/wiːk/|虚弱的|',
+        'young|/jʌŋ/|年轻的|',
+        'poor|/pɔː/|贫穷的|',
+        'busy|/ˈbɪzi/|忙碌的|',
+        'free|/friː/|空闲的|',
+        'empty|/ˈempti/|空的|',
+        'full|/fʊl/|满的|',
+        'heavy|/ˈhevi/|重的|',
+        'light|/laɪt/|轻的|',
+        'safe|/seɪf/|安全的|',
+        'important|/ɪmˈpɔːtnt/|重要的|',
+        'nice|/naɪs/|美好的|',
+        'clean|/kliːn/|干净的|'
+      ].join('\n')],
+
+      feelings: ['情绪', 'Feelings', '😊', '#FF7B54', [
+        'excited|/ɪkˈsaɪtɪd/|兴奋的|🤩',
+        'scared|/skeəd/|害怕的|😨',
+        'bored|/bɔːd/|无聊的|😑',
+        'surprised|/səˈpraɪzd/|惊讶的|😲',
+        'proud|/praʊd/|自豪的|😌',
+        'nervous|/ˈnɜːvəs/|紧张的|😰',
+        'shy|/ʃaɪ/|害羞的|😳',
+        'lonely|/ˈləʊnli/|孤独的|🥺',
+        'worried|/ˈwʌrid/|担心的|😟',
+        'calm|/kɑːm/|平静的|😇',
+        'glad|/ɡlæd/|高兴的|🙂',
+        'upset|/ʌpˈset/|难过的|😞',
+        'amazed|/əˈmeɪzd/|惊叹的|🤯',
+        'confused|/kənˈfjuːzd/|困惑的|😕',
+        'jealous|/ˈdʒeləs/|嫉妒的|😒'
+      ].join('\n')],
+
+      home: ['家居', 'Home', '🛋️', '#8D6E63', [
+        'bed|/bed/|床|🛏️',
+        'door|/dɔː/|门|🚪',
+        'window|/ˈwɪndəʊ/|窗户|🪟',
+        'sofa|/ˈsəʊfə/|沙发|🛋️',
+        'TV|/tiː viː/|电视|📺',
+        'phone|/fəʊn/|电话|📱',
+        'clock|/klɒk/|钟|🕐',
+        'bowl|/bəʊl/|碗|🥣',
+        'plate|/pleɪt/|盘子|🍽️',
+        'spoon|/spuːn/|勺子|🥄',
+        'fork|/fɔːk/|叉子|🍴',
+        'knife|/naɪf/|刀|🔪',
+        'bottle|/ˈbɒtl/|瓶子|🍾',
+        'box|/bɒks/|盒子|📦',
+        'key|/kiː/|钥匙|🔑',
+        'basket|/ˈbæskɪt/|篮子|🧺',
+        'soap|/səʊp/|肥皂|🧼',
+        'mirror|/ˈmɪrə/|镜子|🪞',
+        'radio|/ˈreɪdiəʊ/|收音机|📻',
+        'camera|/ˈkæmərə/|照相机|📷',
+        'picture|/ˈpɪktʃə/|图画；照片|🖼️',
+        'toy|/tɔɪ/|玩具|🧸',
+        'ball|/bɔːl/|球|⚽',
+        'kite|/kaɪt/|风筝|🪁',
+        'doll|/dɒl/|洋娃娃|🪆',
+        'robot|/ˈrəʊbɒt/|机器人|🤖',
+        'balloon|/bəˈluːn/|气球|🎈',
+        'gift|/ɡɪft/|礼物|🎁',
+        'table|/ˈteɪbl/|桌子|',
+        'lamp|/læmp/|台灯|',
+        'fridge|/frɪdʒ/|冰箱|',
+        'cup|/kʌp/|杯子|',
+        'towel|/ˈtaʊəl/|毛巾|',
+        'brush|/brʌʃ/|刷子|',
+        'pillow|/ˈpɪləʊ/|枕头|',
+        'blanket|/ˈblæŋkɪt/|毯子|',
+        'curtain|/ˈkɜːtn/|窗帘|',
+        'carpet|/ˈkɑːpɪt/|地毯|',
+        'fan|/fæn/|风扇|'
+      ].join('\n')],
+
+      countries: ['国家', 'Countries', '🌍', '#0091AD', [
+        'China|/ˈtʃaɪnə/|中国|🇨🇳',
+        'America|/əˈmerɪkə/|美国|🇺🇸',
+        'England|/ˈɪŋɡlənd/|英国|🏴',
+        'Japan|/dʒəˈpæn/|日本|🇯🇵',
+        'Canada|/ˈkænədə/|加拿大|🇨🇦',
+        'Australia|/ɒˈstreɪliə/|澳大利亚|🇦🇺',
+        'France|/frɑːns/|法国|🇫🇷',
+        'Germany|/ˈdʒɜːməni/|德国|🇩🇪',
+        'Russia|/ˈrʌʃə/|俄罗斯|🇷🇺',
+        'India|/ˈɪndiə/|印度|🇮🇳',
+        'Brazil|/brəˈzɪl/|巴西|🇧🇷',
+        'Korea|/kəˈrɪə/|韩国|🇰🇷',
+        'country|/ˈkʌntri/|国家|'
+      ].join('\n')],
+
+      common: ['常用词', 'Common Words', '💬', '#607D8B', [
+        'this|/ðɪs/|这个|',
+        'that|/ðæt/|那个|',
+        'these|/ðiːz/|这些|',
+        'those|/ðəʊz/|那些|',
+        'what|/wɒt/|什么|❓',
+        'who|/huː/|谁|',
+        'where|/weə/|哪里|',
+        'when|/wen/|什么时候|',
+        'why|/waɪ/|为什么|',
+        'how|/haʊ/|怎样|',
+        'in|/ɪn/|在……里|',
+        'on|/ɒn/|在……上|',
+        'under|/ˈʌndə/|在……下|',
+        'behind|/bɪˈhaɪnd/|在……后面|',
+        'near|/nɪə/|在……附近|',
+        'between|/bɪˈtwiːn/|在……之间|',
+        'and|/ænd/|和|',
+        'but|/bʌt/|但是|',
+        'or|/ɔː/|或者|',
+        'because|/bɪˈkɒz/|因为|',
+        'very|/ˈveri/|非常|',
+        'too|/tuː/|也；太|',
+        'also|/ˈɔːlsəʊ/|也|',
+        'again|/əˈɡen/|再一次|',
+        'here|/hɪə/|这里|',
+        'there|/ðeə/|那里|',
+        'now|/naʊ/|现在|',
+        'then|/ðen/|然后|',
+        'please|/pliːz/|请|🙏',
+        'thank you|/θæŋk juː/|谢谢你|🙌',
+        'sorry|/ˈsɒri/|对不起|🙇',
+        'hello|/həˈləʊ/|你好|👋',
+        'goodbye|/ˌɡʊdˈbaɪ/|再见|',
+        'yes|/jes/|是|✅',
+        'no|/nəʊ/|不|❌'
+      ].join('\n')]
     };
+
+    /* ================= Parse ================= */
+    function parseWords(str) {
+      return str.split('\n').filter(function (line) { return line.trim(); }).map(function (line) {
+        var p = line.split('|');
+        return { w: p[0].trim(), ipa: p[1].trim(), zh: p[2].trim(), e: (p[3] || '').trim() };
+      });
+    }
+
+    var DATA = {}, ALL = [], seen = {};
+    Object.keys(RAW).forEach(function (key) {
+      var r = RAW[key];
+      var words = parseWords(r[4]);
+      DATA[key] = { n: r[0], en: r[1], icon: r[2], c: r[3], words: words };
+      words.forEach(function (w) {
+        if (!seen[w.w]) { seen[w.w] = 1; ALL.push(w); }
+      });
+    });
+    DATA.mix = { n: '综合挑战', en: 'Challenge', icon: '🌈', c: '#7C6BFF', words: ALL, mix: true };
+
+    var CAT_KEYS = Object.keys(RAW);
+    var TOTAL_WORDS = ALL.length;
 
     /* ================= State ================= */
     var state = {
@@ -418,12 +1152,12 @@
     }
     function renderStars() {
       var p = getProgress(), total = 0;
-      for (var k in p) total += p[k];
+      Object.keys(p).forEach(function (k) { total += p[k]; });
       $('totalStars').textContent = total;
       document.querySelectorAll('.cat-card').forEach(function (card) {
         var id = card.getAttribute('data-id');
         var s = p[id] || 0;
-        card.querySelector('.stars').textContent = s > 0 ? '⭐'.repeat(s) : '✨ 等你来挑战';
+        card.querySelector('.stars').textContent = s > 0 ? '⭐'.repeat(s) : '✨ 待挑战';
       });
     }
 
@@ -495,21 +1229,36 @@
 
     /* ================= Home ================= */
     function renderHome() {
+      $('wordTotal').textContent = TOTAL_WORDS;
       var grid = $('catGrid');
       grid.innerHTML = '';
-      Object.keys(DATA).forEach(function (id, idx) {
+      var keys = CAT_KEYS.concat(['mix']);
+      keys.forEach(function (id) {
         var cat = DATA[id];
         var btn = document.createElement('button');
-        btn.className = 'cat-card ' + cat.color;
+        btn.className = 'cat-card' + (cat.mix ? ' challenge' : '');
         btn.setAttribute('data-id', id);
-        btn.innerHTML =
-          '<span class="emoji">' + cat.icon + '</span>' +
-          '<div class="name">' + cat.name + '</div>' +
-          '<div class="en">' + cat.en + '</div>' +
-          '<div class="stars"></div>';
+        btn.style.setProperty('--cc', cat.c);
+        if (cat.mix) {
+          btn.innerHTML =
+            '<span class="emoji">' + cat.icon + '</span>' +
+            '<div><div class="name">' + cat.n + '</div>' +
+            '<div class="en">从全部 ' + TOTAL_WORDS + ' 个单词中随机出题</div>' +
+            '<div class="stars"></div></div>' +
+            '<span class="arrow">▶</span>';
+        } else {
+          btn.innerHTML =
+            '<span class="emoji">' + cat.icon + '</span>' +
+            '<div class="name">' + cat.n + '</div>' +
+            '<div class="en">' + cat.en + '</div>' +
+            '<div class="count">' + cat.words.length + ' 词</div>' +
+            '<div class="stars"></div>';
+        }
         btn.addEventListener('click', function () {
           beep(660, 0.1);
-          openLearn(id);
+          state.current = id;
+          if (cat.mix) { startQuiz(); }
+          else { openLearn(id); }
         });
         grid.appendChild(btn);
       });
@@ -518,9 +1267,10 @@
 
     /* ================= Learn ================= */
     function openLearn(catId) {
-      state.current = catId;
       var cat = DATA[catId];
-      $('learnTitle').innerHTML = cat.icon + ' ' + cat.name + ' ' + cat.en + '<small>点卡片翻一翻，点小喇叭听发音</small>';
+      $('learnTitle').innerHTML = cat.icon + ' ' + cat.n + ' ' + cat.en +
+        '<span class="wcount">' + cat.words.length + ' 词</span>' +
+        '<small>点卡片翻一翻，点小喇叭听发音</small>';
       var grid = $('cardsGrid');
       grid.innerHTML = '';
       cat.words.forEach(function (word) {
@@ -529,7 +1279,7 @@
         card.innerHTML =
           '<div class="wcard-inner">' +
             '<div class="wface front">' +
-              '<span class="emoji">' + word.e + '</span>' +
+              (word.e ? '<span class="emoji">' + word.e + '</span>' : '<span class="letter">' + word.w.charAt(0).toUpperCase() + '</span>') +
               '<div class="word">' + word.w + '</div>' +
               '<div class="hint">点击翻面 👆</div>' +
             '</div>' +
@@ -557,12 +1307,15 @@
     var QTYPES = ['word2zh', 'emoji2word', 'listen2word'];
     var QTYPE_LABEL = { word2zh: '👀 看词选意思', emoji2word: '🖼️ 看图选单词', listen2word: '👂 听音选单词' };
 
-    function buildQuestions(cat) {
+    function buildQuestions(cat, count) {
       var qs = [];
-      var pool = sample(cat.words, 8);
+      var pool = sample(cat.words, Math.min(count, cat.words.length));
       pool.forEach(function (word, i) {
         var type = QTYPES[i % QTYPES.length];
-        var others = sample(cat.words.filter(function (x) { return x.w !== word.w; }), 3);
+        if (type === 'emoji2word' && !word.e) type = 'word2zh';
+        var others = sample(cat.words.filter(function (x) {
+          return x.w !== word.w && x.zh !== word.zh;
+        }), 3);
         var options = shuffle(others.concat([word]));
         qs.push({ word: word, type: type, options: options });
       });
@@ -571,8 +1324,10 @@
 
     function startQuiz() {
       var cat = DATA[state.current];
-      $('quizTitle').innerHTML = '✏️ ' + cat.name + '小测验<small>答对题目，收集星星吧！</small>';
-      state.quiz = { qIndex: 0, score: 0, questions: buildQuestions(cat), locked: false };
+      var count = cat.mix ? 10 : 8;
+      $('quizTitle').innerHTML = (cat.mix ? '🌈 ' : '✏️ ') + cat.n +
+        '<small>' + (cat.mix ? '全部单词随机出题，共 10 题' : '答对题目，收集星星吧！') + '</small>';
+      state.quiz = { qIndex: 0, score: 0, questions: buildQuestions(cat, count), locked: false };
       $('quizBody').style.display = '';
       $('quizResult').style.display = 'none';
       showScreen('screen-quiz');
@@ -581,7 +1336,6 @@
 
     function renderQuestion() {
       var q = state.quiz.questions[state.quiz.qIndex];
-      var cat = DATA[state.current];
       state.quiz.locked = false;
 
       $('qCount').textContent = (state.quiz.qIndex + 1) + ' / ' + state.quiz.questions.length;
@@ -608,19 +1362,19 @@
         var isTarget = opt.w === q.word.w;
         var label;
         if (q.type === 'word2zh') {
-          label = '<span style="font-size:1.6rem; display:block;">' + opt.e + '</span>' + opt.zh;
+          label = (opt.e ? '<span class="opt-emoji">' + opt.e + '</span>' : '') + opt.zh;
         } else {
           label = opt.w;
         }
         var b = document.createElement('button');
         b.className = 'opt';
         b.innerHTML = label;
-        b.addEventListener('click', function () { answer(b, isTarget, q, cat); });
+        b.addEventListener('click', function () { answer(b, isTarget, q); });
         optsBox.appendChild(b);
       });
     }
 
-    function answer(btn, isTarget, q, cat) {
+    function answer(btn, isTarget, q) {
       if (state.quiz.locked) return;
       state.quiz.locked = true;
       var buttons = Array.prototype.slice.call($('qOpts').children);
@@ -636,13 +1390,10 @@
         confetti(24);
       } else {
         btn.classList.add('wrong');
-        if (q.type === 'word2zh') {
-          var correct = q.options.filter(function (o) { return o.w === q.word.w; })[0];
-          buttons.forEach(function (b) { if (b.innerHTML.indexOf(correct.zh) > -1) b.classList.add('correct'); });
-        } else {
-          buttons.forEach(function (b) { if (b.innerHTML === q.word.w) b.classList.add('correct'); });
-        }
-        fb.textContent = '正确答案是「' + (q.type === 'word2zh' ? q.word.zh : q.word.w) + '」' + (q.type === 'word2zh' ? ' → ' + q.word.w : '') + '，再想想哦～';
+        var correctIndex = q.options.indexOf(q.word);
+        if (correctIndex > -1 && buttons[correctIndex]) buttons[correctIndex].classList.add('correct');
+        fb.textContent = '正确答案是「' + (q.type === 'word2zh' ? q.word.zh : q.word.w) + '」' +
+          (q.type === 'word2zh' ? ' → ' + q.word.w : '') + '，再想想哦～';
         fb.className = 'q-feedback bad';
         sndWrong();
         speak(q.word.w);
@@ -662,7 +1413,7 @@
       var total = qz.questions.length;
       var ratio = qz.score / total;
       var stars = ratio === 1 ? 3 : ratio >= 0.75 ? 2 : ratio >= 0.5 ? 1 : 0;
-      setStars(state.current, Math.max(stars, 0));
+      setStars(state.current, stars);
 
       $('quizBody').style.display = 'none';
       $('quizResult').style.display = '';
@@ -670,9 +1421,7 @@
       $('resTitle').textContent = stars === 3 ? '满分！你就是单词小达人！' : stars === 2 ? '表现很棒，继续加油！' : stars === 1 ? '不错哦，再练练会更好！' : '没关系，多学多练你最棒！';
       $('resScore').textContent = '答对 ' + qz.score + ' / ' + total + ' 题' + (stars > 0 ? '，获得 ⭐×' + stars : '');
       var starHtml = '';
-      for (var i = 0; i < 3; i++) {
-        starHtml += i < stars ? '⭐' : '<span class="dim">⭐</span>';
-      }
+      for (var i = 0; i < 3; i++) starHtml += i < stars ? '⭐' : '<span class="dim">⭐</span>';
       $('resStars').innerHTML = starHtml;
       if (stars > 0) { sndWin(); confetti(stars === 3 ? 120 : 60); }
     }
