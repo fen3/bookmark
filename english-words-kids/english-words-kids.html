@@ -87,6 +87,12 @@
     }
     .read-link:active { transform: translateY(1px); }
     @media (max-width: 520px) { .read-link span { display: none; } }
+    @media (max-width: 430px) {
+      .brand div { font-size: 0.95rem; }
+      .star-chip { padding: 0.3rem 0.6rem; font-size: 0.85rem; }
+      .read-link { padding: 0.3rem 0.55rem; }
+      header.topbar { padding: 0.75rem 0.8rem; }
+    }
 
     /* ===== Screens ===== */
     .screen { display: none; animation: pop-in 0.35s ease; }
@@ -300,6 +306,7 @@
       </div>
       <div style="display:flex; align-items:center; gap:0.6rem;">
         <a class="read-link" href="./reading.html" title="50 篇日常短文阅读">📖 <span>短文阅读</span></a>
+        <a class="read-link" href="./drama.html" title="14 场英语小短剧">🎭 <span>英语短剧</span></a>
         <div class="star-chip" title="你获得的星星">⭐ <span id="totalStars">0</span></div>
         <button class="sound-toggle" id="soundToggle" title="开关音效">🔔</button>
       </div>
