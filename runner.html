@@ -1243,23 +1243,40 @@
                 }
             }
 
+            function checkSecureContext() {
+                if (window.isSecureContext === false) {
+                    setGps('err', '环境不安全');
+                    showNotice('当前页面未在 HTTPS 下运行，定位不可用。请通过部署地址打开本页。', false);
+                    return false;
+                }
+                return true;
+            }
+
             function startWatch() {
                 if (!navigator.geolocation) {
                     setGps('err', '定位不可用');
                     showNotice('当前浏览器不支持定位，无法记录跑步', false);
                     return;
                 }
+                if (!checkSecureContext()) return;
+
                 stopWatch();
                 setGps('warn', 'GPS 搜索中…');
                 try {
-                    state.watchId = navigator.geolocation.watchPosition(onPosition, onGeoError, {
+                    // iPhone Safari 冷启动 GPS 首次 fix 可能需要 30–60 秒，
+                    // 超时太短会让 watchPosition 在真正定位到之前就反复触发 code=3。
+                    // maximumAge 也不能太严，否则 iOS 会频繁丢弃缓存 fix。
+                    var opts = {
                         enableHighAccuracy: true,
-                        maximumAge: 1000,
-                        timeout: 20000
-                    });
+                        maximumAge: 5000,
+                        timeout: 120000
+                    };
+                    state.watchId = navigator.geolocation.watchPosition(onPosition, onGeoError, opts);
+                    console.info('[Runner] geolocation watch started, watchId=' + state.watchId, opts);
                 } catch (e) {
+                    console.error('[Runner] geolocation start failed', e);
                     setGps('err', '定位不可用');
-                    showNotice('定位启动失败，请检查浏览器权限', true);
+                    showNotice('定位启动失败：' + (e.message || String(e)), true);
                 }
             }
 
@@ -1277,22 +1294,34 @@
                 var lat = pos.coords.latitude;
                 var lng = pos.coords.longitude;
                 var now = Date.now();
+                var accuracy = pos.coords && pos.coords.accuracy;
 
-                setGps('on', 'GPS 已连接');
-                hideNotice();
-
-                var point = { lat: lat, lng: lng };
-
+                // 用精度阈值区分"搜到了"和"定位准了"
+                // iPhone 冷启动可能先给几百米精度的 fix，不应立刻标记已连接
                 if (!state.lastPoint) {
-                    state.lastPoint = point;
+                    // 首次拿到 fix 就先把地图移过去，哪怕精度还不够
+                    state.lastPoint = { lat: lat, lng: lng };
                     addTrackPoint(lat, lng, now, true);
                     updateMarker(lat, lng);
                     if (state.mapReady) {
                         state.map.setView([lat, lng], 17);
                     }
+                    if (typeof accuracy === 'number' && accuracy <= 30) {
+                        setGps('on', 'GPS 已连接');
+                        hideNotice();
+                    } else {
+                        setGps('warn', 'GPS 精度中…');
+                        showNotice('已收到信号，等待高精度定位（精度 ≥ ' + (accuracy == null ? '?' : Math.round(accuracy) + 'm') + '）', false);
+                    }
                     return;
                 }
 
+                if (typeof accuracy === 'number' && accuracy <= 30) {
+                    setGps('on', 'GPS 已连接');
+                    hideNotice();
+                }
+
+                var point = { lat: lat, lng: lng };
                 var d = haversine(state.lastPoint, point);
 
                 // GPS 漂移过滤：单次跳跃 > 50m 丢弃，避免虚增距离
@@ -1320,15 +1349,25 @@
 
             function onGeoError(err) {
                 if (state.status !== 'running') return;
-                if (err.code === 1) {
+                // 透传真实错误信息到 console，方便 iPhone Safari 调试
+                console.warn('[Runner] geolocation error code=' + err.code + ' msg=' + (err.message || '(no message)'));
+
+                var code = err.code;
+                if (code === 1) {
+                    // PERMISSION_DENIED：用户在弹窗点了"不允许"
                     setGps('err', '定位已关闭');
-                    showNotice('需要定位权限才能记录跑步', true);
-                } else if (err.code === 3) {
+                    showNotice('需要定位权限才能记录跑步（错误码 1）', true);
+                } else if (code === 2) {
+                    // POSITION_UNAVAILABLE：设备没开启系统定位开关，或信号极弱
+                    setGps('warn', 'GPS 信号弱');
+                    showNotice('设备无法获取位置。请在 iPhone 设置中确认「隐私与安全 → 定位服务」已开启，且允许 Safari 使用定位（错误码 2）', false);
+                } else if (code === 3) {
+                    // TIMEOUT：watchPosition 等待新 fix 超时
                     setGps('warn', 'GPS 搜索中…');
-                    showNotice('定位超时，正在继续搜索…', false);
+                    showNotice('定位超时，正在继续搜索（可尝试移动到开阔处，错误码 3）', false);
                 } else {
                     setGps('warn', 'GPS 搜索中…');
-                    showNotice('GPS 信号弱，正在搜索…', false);
+                    showNotice('定位异常：' + (err.message || String(err) + '（错误码 ' + code + '）'), false);
                 }
             }
 
@@ -1552,6 +1591,19 @@
                     } catch (e) { /* ignore */ }
                     renderHistory([]);
                     toast('历史记录已清空');
+                });
+
+                // iPhone Safari 切到后台后会静默停止 watchPosition，
+                // 回到前台时如果还在跑步需要重启 GPS。
+                // 注意：visibilitychange 不是用户手势，这里不能调 speak()，只能重启 watch。
+                document.addEventListener('visibilitychange', function () {
+                    if (document.visibilityState === 'visible' && state.status === 'running') {
+                        console.info('[Runner] page visible, watchId=' + state.watchId);
+                        // 给 Safari 一点缓冲再重启，避免立刻又被切走
+                        setTimeout(function () {
+                            if (state.status === 'running') startWatch();
+                        }, 300);
+                    }
                 });
 
                 Array.prototype.forEach.call(document.querySelectorAll('.nav-btn'), function (btn) {
