@@ -1469,13 +1469,45 @@
                 console.warn('[Runner] geolocation error code=' + code +
                     ' msg="' + rawMsg + '"');
 
+                // 异步读一次 permissions.query，看是不是 iOS 18 Safari 已知 bug：
+                // permissions.query 报告 granted 但 geolocation 引擎实际拒绝
+                var checkMismatch = function (diag) {
+                    if (!(navigator.permissions && navigator.permissions.query)) return;
+                    navigator.permissions.query({ name: 'geolocation' }).then(function (p) {
+                        if (p.state === 'granted' && code === 1 &&
+                            /User denied/i.test(rawMsg)) {
+                            // 🚨 permissions.query 说 granted，但 geolocation 实际拒绝
+                            // — iOS Safari 的已知权限缓存不同步 bug
+                            console.warn('[Runner] MISMATCH: permissions.query=granted ' +
+                                'but geolocation denied (iOS Safari bug)');
+                            diag.safariBug = true;
+                            diag.hint = 'iOS 18 Safari 权限缓存不同步 bug — 见 notice';
+                            setGps('err', 'Safari 权限缓存不同步');
+                            showNotice(
+                                '⚠️ 检测到 iOS Safari 权限缓存不同步 bug\n\n' +
+                                '你的 Safari 设置报告「允许定位」，但底层引擎\n' +
+                                '却返回「User denied」。这是 iOS 15–18 已知 bug。\n\n' +
+                                '修复方法（必须做，否则永远定位不了）：\n' +
+                                '① Safari 地址栏「aA」→ 网站设置 → 位置\n' +
+                                '② 改成「每次访问询问」（不要用「允许」）\n' +
+                                '③ 强制刷新本页\n' +
+                                '④ 点「开始跑步」→ 弹窗点「允许」\n\n' +
+                                '如果还不行：重启 iPhone 后再试。',
+                                false
+                            );
+                            showDiagnostic({ error: diag });
+                            stopRun(true);
+                        } else {
+                            showDiagnostic({ error: diag });
+                            stopRun(true);
+                        }
+                    }).catch(function () {
+                        showDiagnostic({ error: diag });
+                        stopRun(true);
+                    });
+                };
+
                 if (code === 1) {
-                    // PERMISSION_DENIED — Safari 拒绝了定位请求。
-                    // 但原因不止一种，必须看 error.message 来区分：
-                    //   - "User denied Geolocation"         → 网站层（或弹窗被用户点了"不允许"）
-                    //   - "Not allowed to access location services" → 系统层 Safari 定位开关关了
-                    //   - "The operation couldn't be completed" / "The operation couldn't be completed. (kCLErrorDomain error 1.)" → 精确位置关了
-                    //   - 空 message / 只有错误码           → Safari 静默拒绝，常见于精确位置或系统层
                     var diag = { code: code, rawMsg: rawMsg };
 
                     if (/Not allowed to access location/i.test(rawMsg)) {
@@ -1488,6 +1520,8 @@
                             false
                         );
                         diag.hint = '系统层 Safari 定位开关关闭';
+                        showDiagnostic({ error: diag });
+                        stopRun(true);
                     } else if (/couldn't be completed|couldn’t be completed|complete/i.test(rawMsg) || rawMsg === '') {
                         // 精确位置开关关闭 — 网站层里 Safari 对 origin 单独设置了"不精确位置"
                         setGps('err', '精确位置未开启');
@@ -1499,8 +1533,18 @@
                             false
                         );
                         diag.hint = '精确位置开关关闭（iOS 15+ Safari 独立开关）';
+                        showDiagnostic({ error: diag });
+                        stopRun(true);
+                    } else if (/User denied/i.test(rawMsg)) {
+                        // "User denied Geolocation" — 可能是正常拒绝，也可能是 iOS Safari 权限缓存 bug
+                        // 先用 permissions.query 比对一下再说
+                        diag.hint = '网站层被拒 或 iOS Safari 权限缓存 bug';
+                        setGps('err', '定位已被拒绝');
+                        showNotice('正在比对 Safari 权限状态…', false);
+                        checkMismatch(diag);
+                        // 不再往下走 — checkMismatch 会调 showDiagnostic + stopRun
                     } else {
-                        // User denied Geolocation 或其他 — 网站层被拒
+                        // 其他未知 message
                         setGps('err', '定位已被拒绝');
                         showNotice(
                             'Safari 无法获取定位权限（错误码 1）。\n' +
@@ -1512,10 +1556,9 @@
                             false
                         );
                         diag.hint = '网站层 origin 独立设置为拒绝，或首次弹窗被用户拒绝';
+                        showDiagnostic({ error: diag });
+                        stopRun(true);
                     }
-
-                    showDiagnostic({ error: diag });
-                    stopRun(true); // 静默回到 idle，让用户改完设置后重新点开始
                 } else if (code === 2) {
                     setGps('warn', 'GPS 信号弱');
                     showNotice('设备无法获取位置。请确认系统定位开关已开启，且在开阔处重试（错误码 2）', false);
