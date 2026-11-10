@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0f1420">
+    <meta name="description" content="Runner — 轻量跑步记录：GPS 轨迹、实时配速、500 米分段与语音播报，数据仅存本机。">
+    <title>Runner · 轻量跑步记录</title>
+    <link rel="icon" href="/favicon.png">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        :root {
+            --green: #22c55e;
+            --green-bright: #4ade80;
+            --blue: #3b82f6;
+            --bg: #0f1420;
+            --card: #1a2235;
+            --text: #e5e7eb;
+            --muted: #8b98b0;
+            --dim: #7d8ba3;
+            --line: rgba(255, 255, 255, .06);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(820px 420px at 50% -160px, rgba(34, 197, 94, .16), transparent 68%),
+                radial-gradient(620px 380px at 108% 4%, rgba(59, 130, 246, .10), transparent 70%);
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        .app {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 0 16px calc(96px + env(safe-area-inset-bottom));
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ---------- header ---------- */
+        .top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: calc(22px + env(safe-area-inset-top)) 2px 18px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            min-width: 0;
+        }
+
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            flex: none;
+            border-radius: 13px;
+            background: linear-gradient(150deg, #2ee06a, #16a34a 72%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            box-shadow: 0 8px 22px rgba(34, 197, 94, .28);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: .01em;
+        }
+
+        .brand p {
+            margin: 2px 0 0;
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: .16em;
+        }
+
+        .local-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            flex: none;
+            font-size: 10px;
+            color: var(--muted);
+            border: 1px solid rgba(255, 255, 255, .07);
+            background: rgba(255, 255, 255, .03);
+            padding: 5px 9px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        /* ---------- cards ---------- */
+        .card {
+            background: linear-gradient(180deg, #1c2539 0%, #1a2235 100%);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+        }
+
+        .card-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .eyebrow {
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: .18em;
+            color: #6b7a92;
+            margin-bottom: 3px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 650;
+            letter-spacing: .01em;
+        }
+
+        .badge {
+            font-size: 10.5px;
+            color: var(--muted);
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--line);
+            padding: 4px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .pills {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            padding-top: 2px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            line-height: 1;
+            padding: 6px 9px;
+            border-radius: 999px;
+            color: var(--muted);
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--line);
+            white-space: nowrap;
+        }
+
+        .pill .dot {
+            width: 6px;
+            height: 6px;
+            flex: none;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .pill.live {
+            color: var(--green-bright);
+            background: rgba(34, 197, 94, .10);
+            border-color: rgba(34, 197, 94, .26);
+        }
+
+        .pill.live .dot {
+            animation: pulse 1.4s ease-out infinite;
+        }
+
+        .pill.on {
+            color: var(--green-bright);
+            background: rgba(34, 197, 94, .08);
+            border-color: rgba(34, 197, 94, .20);
+        }
+
+        .pill.warn {
+            color: #fbbf24;
+            background: rgba(251, 191, 36, .08);
+            border-color: rgba(251, 191, 36, .22);
+        }
+
+        .pill.err {
+            color: #f87171;
+            background: rgba(248, 113, 113, .08);
+            border-color: rgba(248, 113, 113, .24);
+        }
+
+        .pill.done {
+            color: #93c5fd;
+            background: rgba(59, 130, 246, .10);
+            border-color: rgba(59, 130, 246, .22);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, .5); }
+            70% { box-shadow: 0 0 0 5px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+
+        /* ---------- live metrics ---------- */
+        .label {
+            font-size: 11px;
+            color: var(--dim);
+            letter-spacing: .10em;
+        }
+
+        .distance-wrap {
+            margin-top: 20px;
+        }
+
+        .distance {
+            display: flex;
+            align-items: baseline;
+            gap: 7px;
+            margin-top: 6px;
+            font-size: 58px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -.045em;
+            font-variant-numeric: tabular-nums;
+            color: #f7fafc;
+            text-shadow: 0 0 30px rgba(34, 197, 94, .12);
+        }
+
+        .distance .unit {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0;
+            color: var(--dim);
+        }
+
+        .substats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .substat {
+            background: rgba(255, 255, 255, .028);
+            border: 1px solid rgba(255, 255, 255, .05);
+            border-radius: 10px;
+            padding: 11px 12px;
+        }
+
+        .substat .val {
+            margin-top: 5px;
+            font-size: 25px;
+            font-weight: 650;
+            letter-spacing: -.01em;
+            font-variant-numeric: tabular-nums;
+            color: #eef2f8;
+        }
+
+        .substat .val .unit-sm {
+            margin-left: 3px;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0;
+            color: var(--dim);
+        }
+
+        /* ---------- controls ---------- */
+        .controls {
+            margin-top: 18px;
+        }
+
+        .btn {
+            width: 100%;
+            min-height: 52px;
+            border: 0;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 650;
+            letter-spacing: .02em;
+            cursor: pointer;
+            transition: transform .1s ease, filter .2s ease, opacity .2s ease;
+        }
+
+        .btn:active:not(:disabled) {
+            transform: scale(.95);
+        }
+
+        .btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .btn-start {
+            color: #05210f;
+            background: linear-gradient(180deg, #2ee06a, #16a34a);
+            box-shadow: 0 10px 24px rgba(34, 197, 94, .24), inset 0 1px 0 rgba(255, 255, 255, .22);
+        }
+
+        .btn-stop {
+            color: #fff;
+            background: linear-gradient(180deg, #f87171, #dc2626);
+            box-shadow: 0 10px 24px rgba(220, 38, 38, .18), inset 0 1px 0 rgba(255, 255, 255, .16);
+        }
+
+        .btn-ghost {
+            color: var(--text);
+            background: rgba(255, 255, 255, .055);
+            border: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .btn-save {
+            color: #fff;
+            background: linear-gradient(180deg, #60a5fa, #2563eb);
+            box-shadow: 0 10px 24px rgba(37, 99, 235, .2), inset 0 1px 0 rgba(255, 255, 255, .16);
+        }
+
+        .action-row {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 10px;
+        }
+
+        .hint {
+            margin-top: 10px;
+            font-size: 11.5px;
+            line-height: 1.5;
+            text-align: center;
+            color: var(--dim);
+        }
+
+        .notice {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            background: rgba(248, 113, 113, .08);
+            border: 1px solid rgba(248, 113, 113, .22);
+            font-size: 12px;
+            line-height: 1.4;
+            color: #fca5a5;
+        }
+
+        .notice-btn {
+            flex: none;
+            min-height: 44px;
+            min-width: 44px;
+            padding: 7px 12px;
+            border: 1px solid rgba(248, 113, 113, .35);
+            border-radius: 7px;
+            background: rgba(248, 113, 113, .12);
+            color: #fecaca;
+            font-family: inherit;
+            font-size: 11.5px;
+            cursor: pointer;
+        }
+
+        /* ---------- map ---------- */
+        .map-card {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .map-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 14px 16px;
+        }
+
+        .map-title {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .map-pin {
+            font-size: 14px;
+        }
+
+        .map-status {
+            font-size: 11px;
+            color: var(--dim);
+            white-space: nowrap;
+        }
+
+        .map-wrap {
+            position: relative;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height .3s ease, opacity .25s ease;
+        }
+
+        .map-card.open .map-wrap {
+            max-height: 232px;
+            opacity: 1;
+        }
+
+        #map {
+            width: 100%;
+            height: 220px;
+            background: #0c1220;
+        }
+
+        .map-fallback {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: radial-gradient(circle at 50% 35%, #1b2740, #0c1220);
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .map-fallback .fallback-icon {
+            margin-bottom: 4px;
+            font-size: 26px;
+            opacity: .85;
+        }
+
+        .map-fallback .fallback-sub {
+            font-size: 10.5px;
+            color: #6b7a92;
+        }
+
+        .leaflet-container {
+            background: #0c1220;
+            font-family: inherit;
+        }
+
+        .leaflet-control-attribution {
+            background: rgba(15, 20, 32, .72) !important;
+            color: #8b98b0 !important;
+            font-size: 10px !important;
+        }
+
+        .leaflet-control-attribution a {
+            color: #9aa7bd !important;
+        }
+
+        /* ---------- splits ---------- */
+        .table-wrap {
+            margin: 8px -4px 0;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-variant-numeric: tabular-nums;
+        }
+
+        thead th {
+            padding: 0 6px 8px;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: .10em;
+            color: var(--dim);
+            text-align: right;
+        }
+
+        thead th:first-child {
+            text-align: left;
+        }
+
+        tbody td {
+            padding: 10px 6px;
+            border-top: 1px solid rgba(255, 255, 255, .05);
+            font-size: 13.5px;
+            text-align: right;
+            color: #d7dde8;
+        }
+
+        tbody td:first-child {
+            text-align: left;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        tbody td:nth-child(4) {
+            font-weight: 650;
+            color: var(--green-bright);
+        }
+
+        tbody tr.partial td {
+            background: rgba(34, 197, 94, .04);
+        }
+
+        .empty {
+            padding: 16px 8px;
+            font-size: 12.5px;
+            line-height: 1.6;
+            text-align: center;
+            color: var(--dim);
+        }
+
+        /* ---------- history ---------- */
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .history-item:first-child {
+            padding-top: 6px;
+            border-top: 0;
+        }
+
+        .history-date {
+            font-size: 14px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .history-date span {
+            margin-left: 4px;
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--dim);
+        }
+
+        .history-meta {
+            margin-top: 3px;
+            font-size: 11px;
+            color: var(--dim);
+        }
+
+        .history-right {
+            text-align: right;
+        }
+
+        .history-distance {
+            font-size: 17px;
+            font-weight: 650;
+            font-variant-numeric: tabular-nums;
+            color: #f3f6fb;
+        }
+
+        .history-distance span {
+            margin-left: 3px;
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--dim);
+        }
+
+        .history-sub {
+            margin-top: 3px;
+            font-size: 11px;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .btn-clear {
+            width: 100%;
+            min-height: 44px;
+            margin-top: 12px;
+            border-radius: 9px;
+            border: 1px solid rgba(248, 113, 113, .18);
+            background: rgba(248, 113, 113, .06);
+            color: #fca5a5;
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            transition: transform .1s ease;
+        }
+
+        .btn-clear:active {
+            transform: scale(.95);
+        }
+
+        .foot-note {
+            margin: 4px 0 26px;
+            font-size: 10.5px;
+            line-height: 1.7;
+            text-align: center;
+            color: #5f6c82;
+        }
+
+        /* ---------- bottom nav ---------- */
+        .bottom-nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 500;
+            display: flex;
+            justify-content: center;
+            padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+            background: rgba(15, 20, 32, .86);
+            border-top: 1px solid rgba(255, 255, 255, .06);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .bottom-nav .inner {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+            max-width: 520px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            min-width: 44px;
+            height: 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--dim);
+            font-family: inherit;
+            font-size: 10.5px;
+            cursor: pointer;
+            transition: transform .1s ease, background .2s ease;
+        }
+
+        .nav-btn .nav-icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .nav-btn.active {
+            color: var(--green-bright);
+            background: rgba(34, 197, 94, .08);
+        }
+
+        .nav-btn:active {
+            transform: scale(.95);
+        }
+
+        /* ---------- toast ---------- */
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 88px;
+            z-index: 900;
+            max-width: 86vw;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, .09);
+            background: rgba(28, 37, 57, .97);
+            color: var(--text);
+            font-size: 13px;
+            line-height: 1.4;
+            text-align: center;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .35);
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, 12px);
+            transition: opacity .25s ease, transform .25s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        @media (max-width: 360px) {
+            .local-chip {
+                display: none;
+            }
+
+            .distance {
+                font-size: 52px;
+            }
+
+            .substat .val {
+                font-size: 22px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <header class="top">
+            <div class="brand">
+                <div class="brand-mark" aria-hidden="true">🏃</div>
+                <div>
+                    <h1>Runner</h1>
+                    <p>RUN · RECORD · REPEAT</p>
+                </div>
+            </div>
+            <div class="local-chip">🔒 数据仅存本机</div>
+        </header>
+
+        <main>
+            <!-- 实时数据 -->
+            <section class="card" aria-label="本次跑步数据">
+                <div class="card-head">
+                    <div>
+                        <div class="eyebrow">SESSION</div>
+                        <div class="card-title">本次跑步</div>
+                    </div>
+                    <div class="pills">
+                        <span class="pill" id="statePill"><span class="dot"></span>待开始</span>
+                        <span class="pill" id="gpsPill"><span class="dot"></span>GPS 未连接</span>
+                    </div>
+                </div>
+
+                <div class="distance-wrap">
+                    <div class="label">距离</div>
+                    <div class="distance"><span id="distance">0.00</span><span class="unit">km</span></div>
+                </div>
+
+                <div class="substats">
+                    <div class="substat">
+                        <div class="label">用时</div>
+                        <div class="val" id="duration">00:00</div>
+                    </div>
+                    <div class="substat">
+                        <div class="label">配速</div>
+                        <div class="val"><span id="pace">--:--</span><span class="unit-sm">/km</span></div>
+                    </div>
+                </div>
+
+                <div class="notice hidden" id="gpsNotice">
+                    <span id="gpsNoticeText">需要定位权限才能记录跑步</span>
+                    <button class="notice-btn" id="retryBtn" type="button">重新授权</button>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-start" id="startBtn" type="button">开始跑步</button>
+                    <button class="btn btn-stop hidden" id="stopBtn" type="button">■ 结束</button>
+                    <div class="action-row hidden" id="actionRow">
+                        <button class="btn btn-ghost" id="discardBtn" type="button">放弃</button>
+                        <button class="btn btn-save" id="saveBtn" type="button">保存记录</button>
+                    </div>
+                    <div class="hint hidden" id="finishHint"></div>
+                </div>
+            </section>
+
+            <!-- 地图 -->
+            <section class="card map-card" id="mapCard" aria-label="轨迹地图">
+                <div class="map-head">
+                    <div class="map-title"><span class="map-pin" aria-hidden="true">📍</span>轨迹地图</div>
+                    <div class="map-status" id="mapStatus">等待开始</div>
+                </div>
+                <div class="map-wrap">
+                    <div id="map"></div>
+                    <div class="map-fallback hidden" id="mapFallback">
+                        <div class="fallback-icon" aria-hidden="true">🗺️</div>
+                        <div>地图底图不可用</div>
+                        <div class="fallback-sub">离线状态下轨迹仍会照常记录</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 分段配速 -->
+            <section class="card hidden" id="splitsCard" aria-label="分段配速">
+                <div class="card-head">
+                    <div class="card-title">分段配速</div>
+                    <div class="badge" id="splitsBadge">每 500 米</div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">段</th>
+                                <th scope="col">距离</th>
+                                <th scope="col">用时</th>
+                                <th scope="col">配速</th>
+                            </tr>
+                        </thead>
+                        <tbody id="splitsBody"></tbody>
+                    </table>
+                </div>
+                <div class="empty hidden" id="splitsEmpty">跑满 500 米后自动分段</div>
+            </section>
+
+            <!-- 历史记录 -->
+            <section class="card" aria-label="历史记录">
+                <div class="card-head">
+                    <div class="card-title">历史记录</div>
+                    <div class="badge" id="historyCount">0 条</div>
+                </div>
+                <div id="historyList"></div>
+                <div class="empty" id="historyEmpty">还没有记录，开始你的第一次跑步吧。</div>
+                <button class="btn-clear hidden" id="clearBtn" type="button">清空历史</button>
+            </section>
+
+            <p class="foot-note">所有数据仅保存在本机浏览器，不上传服务器<br>iOS Safari 14+ / Android Chrome 90+</p>
+        </main>
+    </div>
+
+    <!-- 底部导航（预留） -->
+    <nav class="bottom-nav" aria-label="底部导航">
+        <div class="inner">
+            <button class="nav-btn active" type="button" data-action="home">
+                <span class="nav-icon" aria-hidden="true">🏠</span>
+                <span>首页</span>
+            </button>
+            <button class="nav-btn" type="button" data-action="stats">
+                <span class="nav-icon" aria-hidden="true">📊</span>
+                <span>统计</span>
+            </button>
+            <button class="nav-btn" type="button" data-action="settings">
+                <span class="nav-icon" aria-hidden="true">⚙️</span>
+                <span>设置</span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var STORAGE_KEY = 'runner_history';
+            var ACTIVE_KEY = 'runner_active';
+            var SPLIT_METERS = 500;
+            var DRIFT_LIMIT = 50;
+            var TRACK_MIN = 5;
+            var MIN_SAVE_DISTANCE = 100;
+            var MAX_ROUTE_POINTS = 1500;
+
+            function $(id) { return document.getElementById(id); }
+
+            var el = {
+                distance: $('distance'),
+                duration: $('duration'),
+                pace: $('pace'),
+                statePill: $('statePill'),
+                gpsPill: $('gpsPill'),
+                startBtn: $('startBtn'),
+                stopBtn: $('stopBtn'),
+                actionRow: $('actionRow'),
+                saveBtn: $('saveBtn'),
+                discardBtn: $('discardBtn'),
+                finishHint: $('finishHint'),
+                gpsNotice: $('gpsNotice'),
+                gpsNoticeText: $('gpsNoticeText'),
+                retryBtn: $('retryBtn'),
+                mapCard: $('mapCard'),
+                mapStatus: $('mapStatus'),
+                mapFallback: $('mapFallback'),
+                splitsCard: $('splitsCard'),
+                splitsBody: $('splitsBody'),
+                splitsEmpty: $('splitsEmpty'),
+                splitsBadge: $('splitsBadge'),
+                historyList: $('historyList'),
+                historyEmpty: $('historyEmpty'),
+                historyCount: $('historyCount'),
+                clearBtn: $('clearBtn'),
+                toast: $('toast')
+            };
+
+            var state = {
+                status: 'idle',      // idle | running | finished
+                startedAt: 0,
+                totalTime: 0,
+                distance: 0,
+                splitDistance: 0,
+                splitStartAt: 0,
+                splits: [],
+                route: [],
+                lastPoint: null,
+                rejectCount: 0,
+                lastAnnouncedSplit: 0,
+                watchId: null,
+                ticker: null,
+                map: null,
+                polyline: null,
+                marker: null,
+                mapReady: false,
+                currentPos: null
+            };
+
+            var toastTimer = null;
+
+            /* ---------------- utils ---------------- */
+
+            function pad2(n) {
+                return (n < 10 ? '0' : '') + n;
+            }
+
+            function formatDuration(ms) {
+                var total = Math.max(0, Math.floor(ms / 1000));
+                var h = Math.floor(total / 3600);
+                var m = Math.floor((total % 3600) / 60);
+                var s = total % 60;
+                return h > 0
+                    ? h + ':' + pad2(m) + ':' + pad2(s)
+                    : pad2(m) + ':' + pad2(s);
+            }
+
+            function speakDuration(ms) {
+                var total = Math.round(Math.max(0, ms) / 1000);
+                var h = Math.floor(total / 3600);
+                var m = Math.floor((total % 3600) / 60);
+                var s = total % 60;
+                var parts = [];
+                if (h > 0) parts.push(h + ' 小时');
+                if (m > 0) parts.push(m + ' 分');
+                if (s > 0 || parts.length === 0) parts.push(s + ' 秒');
+                return parts.join(' ');
+            }
+
+            function formatPace(msPerKm) {
+                if (!isFinite(msPerKm) || msPerKm <= 0) return '--:--';
+                var total = Math.round(msPerKm / 1000);
+                var m = Math.floor(total / 60);
+                var s = total % 60;
+                return m + ':' + pad2(s);
+            }
+
+            function speakPace(msPerKm) {
+                if (!isFinite(msPerKm) || msPerKm <= 0) return '未知';
+                var total = Math.round(msPerKm / 1000);
+                var m = Math.floor(total / 60);
+                var s = total % 60;
+                return s > 0 ? m + ' 分 ' + s + ' 秒' : m + ' 分';
+            }
+
+            function haversine(a, b) {
+                var R = 6371000;
+                var toRad = function (d) { return d * Math.PI / 180; };
+                var dLat = toRad(b.lat - a.lat);
+                var dLng = toRad(b.lng - a.lng);
+                var lat1 = toRad(a.lat);
+                var lat2 = toRad(b.lat);
+                var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+            }
+
+            function toast(message) {
+                el.toast.textContent = message;
+                el.toast.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function () {
+                    el.toast.classList.remove('show');
+                }, 2400);
+            }
+
+            /* ---------------- speech ---------------- */
+
+            function speak(text) {
+                if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') return;
+                try {
+                    window.speechSynthesis.cancel();
+                    var utter = new SpeechSynthesisUtterance(text);
+                    utter.lang = 'zh-CN';
+                    utter.rate = 1.1;
+                    window.speechSynthesis.speak(utter);
+                } catch (e) { /* 静默失败，不影响核心功能 */ }
+            }
+
+            /* ---------------- storage ---------------- */
+
+            function loadHistory() {
+                try {
+                    var raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return [];
+                    var data = JSON.parse(raw);
+                    return Array.isArray(data) ? data : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function persistHistory(list) {
+                var copy = list.slice();
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
+                    return copy;
+                } catch (e) {
+                    // localStorage 满：先丢弃最旧记录的轨迹点，保留分段与汇总
+                    for (var i = copy.length - 1; i >= 0; i--) {
+                        if (copy[i].route && copy[i].route.length) {
+                            copy[i] = Object.assign({}, copy[i], { route: [] });
+                            try {
+                                localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
+                                return copy;
+                            } catch (e2) { /* 继续尝试 */ }
+                        }
+                    }
+                    // 仍失败：逐条丢弃最旧记录
+                    while (copy.length > 1) {
+                        copy.pop();
+                        try {
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
+                            return copy;
+                        } catch (e3) { /* 继续尝试 */ }
+                    }
+                }
+                return copy;
+            }
+
+            function downsample(route) {
+                if (route.length <= MAX_ROUTE_POINTS) return route.slice();
+                var step = Math.ceil(route.length / MAX_ROUTE_POINTS);
+                var out = [];
+                for (var i = 0; i < route.length; i += step) out.push(route[i]);
+                var last = route[route.length - 1];
+                if (out[out.length - 1] !== last) out.push(last);
+                return out;
+            }
+
+            /* ---------------- render ---------------- */
+
+            function setPill(node, text, tone) {
+                node.className = 'pill' + (tone ? ' ' + tone : '');
+                node.innerHTML = '<span class="dot"></span>' + text;
+            }
+
+            function renderPills() {
+                if (state.status === 'running') {
+                    setPill(el.statePill, '记录中', 'live');
+                } else if (state.status === 'finished') {
+                    setPill(el.statePill, '已结束', 'done');
+                } else {
+                    setPill(el.statePill, '待开始', '');
+                }
+            }
+
+            function setGps(tone, text) {
+                setPill(el.gpsPill, text, tone);
+            }
+
+            function elapsed() {
+                if (state.status === 'running') return Date.now() - state.startedAt;
+                return state.totalTime;
+            }
+
+            function updateMetrics() {
+                var ms = elapsed();
+                el.distance.textContent = (state.distance / 1000).toFixed(2);
+                el.duration.textContent = formatDuration(ms);
+                var paceText = '--:--';
+                if (state.distance >= 1000 && ms > 0) {
+                    paceText = formatPace(ms / (state.distance / 1000));
+                }
+                el.pace.textContent = paceText;
+            }
+
+            function renderSplits() {
+                var hasSplits = state.splits.length > 0;
+                el.splitsCard.classList.toggle('hidden', !hasSplits);
+                el.splitsEmpty.classList.toggle('hidden', hasSplits);
+                el.splitsBadge.textContent = hasSplits
+                    ? state.splits.length + ' 段 · 每 500 米'
+                    : '每 500 米';
+                el.splitsBody.innerHTML = state.splits.map(function (s) {
+                    var partial = s.distance < SPLIT_METERS - 1;
+                    return '<tr class="' + (partial ? 'partial' : '') + '">' +
+                        '<td>' + s.num + '</td>' +
+                        '<td>' + s.distance + ' m</td>' +
+                        '<td>' + formatDuration(s.time) + '</td>' +
+                        '<td>' + formatPace(s.pace) + '</td>' +
+                        '</tr>';
+                }).join('');
+            }
+
+            function renderHistory(list) {
+                var history = list || loadHistory();
+                el.historyCount.textContent = history.length + ' 条';
+                el.historyEmpty.classList.toggle('hidden', history.length > 0);
+                el.clearBtn.classList.toggle('hidden', history.length === 0);
+                el.historyList.innerHTML = '';
+
+                history.forEach(function (run) {
+                    var d = new Date(run.date);
+                    var dateStr = pad2(d.getMonth() + 1) + '/' + pad2(d.getDate());
+                    var timeStr = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+                    var pace = run.avgPace ? formatPace(run.avgPace) : '--:--';
+                    var meta = run.splits && run.splits.length
+                        ? run.splits.length + ' 个分段'
+                        : '未分段';
+                    var row = document.createElement('div');
+                    row.className = 'history-item';
+                    row.innerHTML =
+                        '<div class="history-left">' +
+                            '<div class="history-date">' + dateStr +
+                                ' <span>' + timeStr + '</span></div>' +
+                            '<div class="history-meta">' + meta + '</div>' +
+                        '</div>' +
+                        '<div class="history-right">' +
+                            '<div class="history-distance">' +
+                                (run.totalDistance / 1000).toFixed(2) +
+                                '<span>km</span></div>' +
+                            '<div class="history-sub">' + formatDuration(run.totalTime) +
+                                ' · ' + pace + '/km</div>' +
+                        '</div>';
+                    el.historyList.appendChild(row);
+                });
+            }
+
+            /* ---------------- notices ---------------- */
+
+            function showNotice(text, showRetry) {
+                el.gpsNoticeText.textContent = text;
+                el.retryBtn.classList.toggle('hidden', !showRetry);
+                el.gpsNotice.classList.remove('hidden');
+            }
+
+            function hideNotice() {
+                el.gpsNotice.classList.add('hidden');
+            }
+
+            /* ---------------- map ---------------- */
+
+            function ensureMap() {
+                if (state.mapReady) return true;
+                if (!window.L) {
+                    el.mapFallback.classList.remove('hidden');
+                    el.mapStatus.textContent = '离线';
+                    return false;
+                }
+                try {
+                    state.map = L.map('map', {
+                        zoomControl: false,
+                        attributionControl: true,
+                        preferCanvas: true
+                    }).setView([39.9042, 116.4074], 15);
+
+                    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(state.map);
+
+                    state.polyline = L.polyline([], {
+                        color: '#22c55e',
+                        weight: 5,
+                        opacity: 0.95,
+                        lineJoin: 'round',
+                        lineCap: 'round'
+                    }).addTo(state.map);
+
+                    state.marker = L.circleMarker([39.9042, 116.4074], {
+                        radius: 8,
+                        stroke: true,
+                        color: '#ffffff',
+                        weight: 3,
+                        fillColor: '#3b82f6',
+                        fillOpacity: 1
+                    });
+
+                    state.mapReady = true;
+                    return true;
+                } catch (e) {
+                    el.mapFallback.classList.remove('hidden');
+                    el.mapStatus.textContent = '地图不可用';
+                    return false;
+                }
+            }
+
+            function openMap() {
+                el.mapCard.classList.add('open');
+                var ok = ensureMap();
+                el.mapStatus.textContent = ok ? '实时轨迹' : '离线';
+                setTimeout(function () {
+                    if (state.map) {
+                        state.map.invalidateSize();
+                        if (state.currentPos) state.map.setView(state.currentPos, 17);
+                    }
+                }, 320);
+            }
+
+            function closeMap() {
+                el.mapCard.classList.remove('open');
+            }
+
+            function resetMap() {
+                if (state.polyline) state.polyline.setLatLngs([]);
+                if (state.marker && state.map && state.map.hasLayer(state.marker)) {
+                    state.map.removeLayer(state.marker);
+                }
+                el.mapStatus.textContent = '等待开始';
+            }
+
+            function updateMarker(lat, lng) {
+                state.currentPos = [lat, lng];
+                if (!state.mapReady) return;
+                state.marker.setLatLng([lat, lng]);
+                if (!state.map.hasLayer(state.marker)) state.marker.addTo(state.map);
+            }
+
+            /* ---------------- run logic ---------------- */
+
+            function startTicker() {
+                stopTicker();
+                state.ticker = setInterval(function () {
+                    if (state.status === 'running') updateMetrics();
+                }, 1000);
+            }
+
+            function stopTicker() {
+                if (state.ticker) {
+                    clearInterval(state.ticker);
+                    state.ticker = null;
+                }
+            }
+
+            function startWatch() {
+                if (!navigator.geolocation) {
+                    setGps('err', '定位不可用');
+                    showNotice('当前浏览器不支持定位，无法记录跑步', false);
+                    return;
+                }
+                stopWatch();
+                setGps('warn', 'GPS 搜索中…');
+                try {
+                    state.watchId = navigator.geolocation.watchPosition(onPosition, onGeoError, {
+                        enableHighAccuracy: true,
+                        maximumAge: 1000,
+                        timeout: 20000
+                    });
+                } catch (e) {
+                    setGps('err', '定位不可用');
+                    showNotice('定位启动失败，请检查浏览器权限', true);
+                }
+            }
+
+            function stopWatch() {
+                if (state.watchId !== null && navigator.geolocation) {
+                    try {
+                        navigator.geolocation.clearWatch(state.watchId);
+                    } catch (e) { /* ignore */ }
+                }
+                state.watchId = null;
+            }
+
+            function onPosition(pos) {
+                if (state.status !== 'running') return;
+                var lat = pos.coords.latitude;
+                var lng = pos.coords.longitude;
+                var now = Date.now();
+
+                setGps('on', 'GPS 已连接');
+                hideNotice();
+
+                var point = { lat: lat, lng: lng };
+
+                if (!state.lastPoint) {
+                    state.lastPoint = point;
+                    addTrackPoint(lat, lng, now, true);
+                    updateMarker(lat, lng);
+                    if (state.mapReady) {
+                        state.map.setView([lat, lng], 17);
+                    }
+                    return;
+                }
+
+                var d = haversine(state.lastPoint, point);
+
+                // GPS 漂移过滤：单次跳跃 > 50m 丢弃，避免虚增距离
+                if (d > DRIFT_LIMIT) {
+                    state.rejectCount += 1;
+                    // 连续两次以上被拒，说明是真实位移（如信号恢复），重新锚定但不计距离
+                    if (state.rejectCount >= 2) {
+                        state.lastPoint = point;
+                        state.rejectCount = 0;
+                    }
+                    return;
+                }
+                state.rejectCount = 0;
+                state.lastPoint = point;
+
+                if (d > 0.3) addDistance(d, now);
+
+                addTrackPoint(lat, lng, now, false);
+                updateMarker(lat, lng);
+
+                if (state.mapReady) {
+                    state.map.panTo([lat, lng], { animate: true, duration: 0.4 });
+                }
+            }
+
+            function onGeoError(err) {
+                if (state.status !== 'running') return;
+                if (err.code === 1) {
+                    setGps('err', '定位已关闭');
+                    showNotice('需要定位权限才能记录跑步', true);
+                } else if (err.code === 3) {
+                    setGps('warn', 'GPS 搜索中…');
+                    showNotice('定位超时，正在继续搜索…', false);
+                } else {
+                    setGps('warn', 'GPS 搜索中…');
+                    showNotice('GPS 信号弱，正在搜索…', false);
+                }
+            }
+
+            function addTrackPoint(lat, lng, now, force) {
+                var last = state.route[state.route.length - 1];
+                if (!force && last && haversine(last, { lat: lat, lng: lng }) < TRACK_MIN) return;
+                state.route.push({
+                    lat: Number(lat.toFixed(6)),
+                    lng: Number(lng.toFixed(6)),
+                    t: now
+                });
+                if (state.polyline) {
+                    state.polyline.addLatLng([lat, lng]);
+                }
+            }
+
+            function addDistance(delta, now) {
+                state.distance += delta;
+                state.splitDistance += delta;
+
+                while (state.splitDistance >= SPLIT_METERS) {
+                    finalizeSplit(SPLIT_METERS, now - state.splitStartAt, true);
+                    state.splitDistance -= SPLIT_METERS;
+                    state.splitStartAt = now;
+                }
+                updateMetrics();
+            }
+
+            function finalizeSplit(distance, time, announce) {
+                if (distance < 1 || time < 1) return;
+                var pace = time / (distance / 1000);
+                var num = state.splits.length + 1;
+                state.splits.push({
+                    num: num,
+                    distance: Math.round(distance),
+                    time: Math.round(time),
+                    pace: Math.round(pace)
+                });
+                renderSplits();
+
+                if (announce && num > state.lastAnnouncedSplit) {
+                    state.lastAnnouncedSplit = num;
+                    speak('第 ' + num + ' 个 500 米完成，用时 ' + speakDuration(time) +
+                        '，配速 ' + speakPace(pace));
+                }
+            }
+
+            function startRun() {
+                resetSession();
+                state.status = 'running';
+                state.startedAt = Date.now();
+                state.splitStartAt = state.startedAt;
+
+                try {
+                    localStorage.setItem(ACTIVE_KEY, String(state.startedAt));
+                } catch (e) { /* ignore */ }
+
+                el.startBtn.classList.add('hidden');
+                el.stopBtn.classList.remove('hidden');
+                el.actionRow.classList.add('hidden');
+                el.finishHint.classList.add('hidden');
+
+                renderPills();
+                updateMetrics();
+                openMap();
+                startTicker();
+                startWatch();
+                speak('开始跑步，加油！');
+            }
+
+            function stopRun() {
+                if (state.status !== 'running') return;
+                var now = Date.now();
+                state.totalTime = now - state.startedAt;
+                state.status = 'finished';
+
+                stopTicker();
+                stopWatch();
+                setGps('', 'GPS 已断开');
+                renderPills();
+                updateMetrics();
+
+                // 最后一段不足 500m 也记录；但只在已完成至少一个完整分段时展示，
+                // 避免几百米的短距离跑步出现一条无意义的分段
+                if (state.splitDistance >= 10 && state.splits.length > 0) {
+                    finalizeSplit(state.splitDistance, now - state.splitStartAt, false);
+                    state.splitDistance = 0;
+                }
+                renderSplits();
+
+                el.stopBtn.classList.add('hidden');
+                el.actionRow.classList.remove('hidden');
+                el.finishHint.classList.remove('hidden');
+
+                var canSave = state.distance >= MIN_SAVE_DISTANCE;
+                el.saveBtn.disabled = !canSave;
+                el.saveBtn.style.opacity = canSave ? '' : '.45';
+                el.finishHint.textContent = canSave
+                    ? '本次跑步已结束，保存后可随时查看'
+                    : '距离不足 0.1 公里，本次记录无法保存';
+
+                speak('跑步结束，总距离 ' + (state.distance / 1000).toFixed(2) +
+                    ' 公里，用时 ' + speakDuration(state.totalTime));
+            }
+
+            function saveRun() {
+                if (state.status !== 'finished') return;
+                if (state.distance < MIN_SAVE_DISTANCE) {
+                    toast('距离不足 0.1 公里，无法保存');
+                    return;
+                }
+
+                var totalTime = Math.round(state.totalTime);
+                var record = {
+                    id: 'run_' + Date.now(),
+                    date: new Date(state.startedAt).toISOString(),
+                    totalDistance: Math.round(state.distance),
+                    totalTime: totalTime,
+                    avgPace: Math.round(totalTime / (state.distance / 1000)),
+                    splits: state.splits.map(function (s) {
+                        return { num: s.num, distance: s.distance, time: s.time, pace: s.pace };
+                    }),
+                    route: downsample(state.route)
+                };
+
+                var history = loadHistory();
+                history.unshift(record);
+                var stored = persistHistory(history);
+                renderHistory(stored);
+
+                try {
+                    localStorage.removeItem(ACTIVE_KEY);
+                } catch (e) { /* ignore */ }
+
+                toast('记录已保存');
+                resetSession();
+            }
+
+            function discardRun() {
+                try {
+                    localStorage.removeItem(ACTIVE_KEY);
+                } catch (e) { /* ignore */ }
+                resetSession();
+                toast('已放弃本次记录');
+            }
+
+            function resetSession() {
+                stopWatch();
+                stopTicker();
+
+                state.status = 'idle';
+                state.startedAt = 0;
+                state.totalTime = 0;
+                state.distance = 0;
+                state.splitDistance = 0;
+                state.splitStartAt = 0;
+                state.splits = [];
+                state.route = [];
+                state.lastPoint = null;
+                state.rejectCount = 0;
+                state.lastAnnouncedSplit = 0;
+                state.currentPos = null;
+
+                resetMap();
+                closeMap();
+
+                el.startBtn.classList.remove('hidden');
+                el.stopBtn.classList.add('hidden');
+                el.actionRow.classList.add('hidden');
+                el.finishHint.classList.add('hidden');
+                el.splitsCard.classList.add('hidden');
+                el.splitsBody.innerHTML = '';
+                el.splitsBadge.textContent = '每 500 米';
+                el.saveBtn.disabled = false;
+                el.saveBtn.style.opacity = '';
+
+                setGps('', 'GPS 未连接');
+                renderPills();
+                updateMetrics();
+                hideNotice();
+            }
+
+            /* ---------------- init ---------------- */
+
+            function checkAbandonedRun() {
+                try {
+                    if (localStorage.getItem(ACTIVE_KEY)) {
+                        localStorage.removeItem(ACTIVE_KEY);
+                        setTimeout(function () {
+                            toast('上次跑步未保存，数据已丢失');
+                        }, 600);
+                    }
+                } catch (e) { /* ignore */ }
+            }
+
+            function init() {
+                renderHistory(loadHistory());
+                renderPills();
+                setGps('', 'GPS 未连接');
+                updateMetrics();
+                hideNotice();
+                el.mapStatus.textContent = '等待开始';
+                checkAbandonedRun();
+
+                el.startBtn.addEventListener('click', startRun);
+                el.stopBtn.addEventListener('click', stopRun);
+                el.saveBtn.addEventListener('click', saveRun);
+                el.discardBtn.addEventListener('click', discardRun);
+
+                el.retryBtn.addEventListener('click', function () {
+                    el.gpsNoticeText.textContent = '正在重新请求定位…';
+                    el.retryBtn.classList.add('hidden');
+                    startWatch();
+                });
+
+                el.clearBtn.addEventListener('click', function () {
+                    if (!loadHistory().length) return;
+                    if (!window.confirm('确定清空全部历史记录？此操作不可恢复。')) return;
+                    try {
+                        localStorage.removeItem(STORAGE_KEY);
+                    } catch (e) { /* ignore */ }
+                    renderHistory([]);
+                    toast('历史记录已清空');
+                });
+
+                Array.prototype.forEach.call(document.querySelectorAll('.nav-btn'), function (btn) {
+                    btn.addEventListener('click', function () {
+                        var action = btn.getAttribute('data-action');
+                        if (action === 'home') {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        } else if (action === 'stats') {
+                            toast('数据统计即将上线');
+                        } else if (action === 'settings') {
+                            toast('设置即将上线');
+                        }
+                    });
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+</body>
+
+</html>
