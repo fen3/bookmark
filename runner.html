@@ -991,6 +991,23 @@
                 currentPos: null
             };
 
+            // GPS 回调统计：用来判断 iOS Safari 到底有没有在调 watchPosition
+            var diagStats = {
+                startCount: 0,
+                lastStartAt: 0,
+                watchId: null,
+                successCount: 0,
+                lastSuccessAt: 0,
+                lastAccuracy: null,
+                lastCoord: null,
+                errorCount: 0,
+                lastErrorAt: 0,
+                lastErrorCode: null,
+                lastErrorMessage: null,
+                lastTestAt: 0,
+                lastTestResult: null
+            };
+
             var toastTimer = null;
 
             /* ---------------- utils ---------------- */
@@ -1347,10 +1364,19 @@
                     };
                     state.watchId = navigator.geolocation.watchPosition(onPosition, onGeoError, opts);
                     console.info('[Runner] geolocation watch started, watchId=' + state.watchId, opts);
+
+                    // 更新诊断统计
+                    diagStats.startCount++;
+                    diagStats.lastStartAt = Date.now();
+                    diagStats.watchId = state.watchId;
                 } catch (e) {
                     console.error('[Runner] geolocation start failed', e);
                     setGps('err', '定位不可用');
                     showNotice('定位启动失败：' + (e.message || String(e)), true);
+                    diagStats.errorCount++;
+                    diagStats.lastErrorAt = Date.now();
+                    diagStats.lastErrorCode = 'EXCEPTION';
+                    diagStats.lastErrorMessage = String(e.message || e);
                 }
             }
 
@@ -1364,6 +1390,14 @@
             }
 
             function onPosition(pos) {
+                // 更新诊断统计（即使 state.status !== running 也记下来，
+                // 方便看 iPhone Safari 在什么时机开始回调）
+                diagStats.successCount++;
+                diagStats.lastSuccessAt = Date.now();
+                diagStats.lastAccuracy = pos.coords ? pos.coords.accuracy : null;
+                diagStats.lastCoord = pos.coords ?
+                    (pos.coords.latitude.toFixed(6) + ',' + pos.coords.longitude.toFixed(6)) : null;
+
                 if (state.status !== 'running') return;
                 var lat = pos.coords.latitude;
                 var lng = pos.coords.longitude;
@@ -1422,6 +1456,12 @@
             }
 
             function onGeoError(err) {
+                // 记诊断统计（即使不是 running 也记）
+                diagStats.errorCount++;
+                diagStats.lastErrorAt = Date.now();
+                diagStats.lastErrorCode = err.code;
+                diagStats.lastErrorMessage = String(err.message || '');
+
                 if (state.status !== 'running') return;
 
                 var code = err.code;
@@ -1639,7 +1679,21 @@
                     geolocationExists: !!navigator.geolocation,
                     userAgent: ua,
                     iosVersion: iosVersion,
-                    safariVersion: safariVersion
+                    safariVersion: safariVersion,
+                    // GPS 回调统计
+                    stats: {
+                        startCount: diagStats.startCount,
+                        lastStartAgo: diagStats.lastStartAt ? (Date.now() - diagStats.lastStartAt) + 'ms' : '—',
+                        watchId: diagStats.watchId,
+                        successCount: diagStats.successCount,
+                        lastSuccessAgo: diagStats.lastSuccessAt ? (Date.now() - diagStats.lastSuccessAt) + 'ms' : '—',
+                        lastAccuracy: diagStats.lastAccuracy !== null ? Math.round(diagStats.lastAccuracy) + 'm' : '—',
+                        lastCoord: diagStats.lastCoord || '—',
+                        errorCount: diagStats.errorCount,
+                        lastErrorAgo: diagStats.lastErrorAt ? (Date.now() - diagStats.lastErrorAt) + 'ms' : '—',
+                        lastErrorCode: diagStats.lastErrorCode,
+                        lastErrorMessage: diagStats.lastErrorMessage
+                    }
                 };
                 if (extra && typeof extra === 'object') {
                     for (var k in extra) {
@@ -1709,7 +1763,33 @@
                 // 6. Origin
                 el.diagBody.appendChild(renderDiagRow('Origin', info.origin));
 
-                // 7. 错误详情（如果有）
+                // 7. GPS 回调统计 — 这是最关键的部分，看 watchPosition 到底有没有在工作
+                var s = info.stats;
+                if (s.startCount > 0) {
+                    var noSuccess = s.successCount === 0;
+                    var noError = s.errorCount === 0;
+                    var callbackClass = (!noSuccess && !noError) ? 'k-ok' : (noSuccess && noError ? 'k-warn' : 'k-bad');
+                    var callbackMsg;
+                    if (!noSuccess) callbackMsg = s.successCount + ' 次成功回调';
+                    else if (!noError) callbackMsg = s.errorCount + ' 次错误回调';
+                    else callbackMsg = '启动了但零回调 — iOS Safari 可能卡住了';
+                    el.diagBody.appendChild(renderDiagRow('watchPosition 回调状态', callbackMsg, callbackClass));
+
+                    el.diagBody.appendChild(renderDiagRow('  watchId', String(s.watchId)));
+                    el.diagBody.appendChild(renderDiagRow('  启动次数 / 距现在', s.startCount + ' / ' + s.lastStartAgo));
+                    el.diagBody.appendChild(renderDiagRow('  成功次数 / 距现在', s.successCount + ' / ' + s.lastSuccessAgo, noSuccess ? 'k-warn' : 'k-ok'));
+                    if (s.lastCoord !== '—') el.diagBody.appendChild(renderDiagRow('  最后坐标', s.lastCoord));
+                    if (s.lastAccuracy !== '—') el.diagBody.appendChild(renderDiagRow('  最后精度', s.lastAccuracy));
+                    el.diagBody.appendChild(renderDiagRow('  错误次数 / 距现在', s.errorCount + ' / ' + s.lastErrorAgo, s.errorCount > 0 ? 'k-bad' : ''));
+                    if (s.lastErrorCode !== null) {
+                        el.diagBody.appendChild(renderDiagRow('  最后错误码', String(s.lastErrorCode), 'k-bad'));
+                        if (s.lastErrorMessage) el.diagBody.appendChild(renderDiagRow('  Safari 最后错误信息', s.lastErrorMessage.length > 80 ? s.lastErrorMessage.slice(0, 80) + '…' : s.lastErrorMessage, 'k-bad'));
+                    }
+                } else {
+                    el.diagBody.appendChild(renderDiagRow('watchPosition 回调状态', '尚未启动（点开始跑步后看这里）', 'k-warn'));
+                }
+
+                // 8. 错误详情（如果有 code=1/2/3 刚发生，showDiagnostic({error}) 传入）
                 if (info.error) {
                     var er = info.error;
                     el.diagBody.appendChild(renderDiagRow('watchPosition 错误码', String(er.code), 'k-bad'));
