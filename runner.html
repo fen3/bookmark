@@ -615,6 +615,63 @@
             color: #5f6c82;
         }
 
+        /* ---------- diagnostic panel ---------- */
+        .diag .card-head {
+            align-items: center;
+        }
+        .diag-toggle {
+            background: transparent;
+            border: none;
+            color: #3b82f6;
+            font-size: 11px;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .diag-toggle:active { background: rgba(59,130,246,0.15); }
+        .diag-body {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+        }
+        .diag-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 6px 8px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .diag-row.k-bad { background: rgba(239,68,68,0.12); color: #fca5a5; }
+        .diag-row.k-ok  { background: rgba(34,197,94,0.10); color: #86efac; }
+        .diag-row.k-warn { background: rgba(251,191,36,0.10); color: #fcd34d; }
+        .diag-key { color: #9ca3af; flex-shrink: 0; margin-right: 8px; }
+        .diag-val { color: inherit; font-family: ui-monospace, Menlo, monospace; font-size: 11px; text-align: right; word-break: break-all; }
+        .diag .btn-ghost {
+            margin-top: 10px;
+            background: transparent;
+            border: 1px solid #3b82f655;
+            color: #93c5fd;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .diag-error {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: rgba(239,68,68,0.12);
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #fecaca;
+            white-space: pre-line;
+        }
+
         /* ---------- bottom nav ---------- */
         .bottom-nav {
             position: fixed;
@@ -829,6 +886,17 @@
                 <button class="btn-clear hidden" id="clearBtn" type="button">清空历史</button>
             </section>
 
+            <!-- 诊断面板：定位不工作时展开，方便用户截图给我排查 -->
+            <section class="card diag hidden" id="diagCard" aria-label="定位诊断">
+                <div class="card-head">
+                    <div class="card-title">定位诊断</div>
+                    <button class="diag-toggle" id="diagToggle" type="button">收起</button>
+                </div>
+                <div class="diag-body" id="diagBody"></div>
+                <button class="btn-ghost" id="diagCopy" type="button">复制诊断信息</button>
+                <div class="diag-error hidden" id="diagError"></div>
+            </section>
+
             <p class="foot-note">所有数据仅保存在本机浏览器，不上传服务器<br>iOS Safari 14+ / Android Chrome 90+</p>
         </main>
     </div>
@@ -894,7 +962,12 @@
                 historyEmpty: $('historyEmpty'),
                 historyCount: $('historyCount'),
                 clearBtn: $('clearBtn'),
-                toast: $('toast')
+                toast: $('toast'),
+                diagCard: $('diagCard'),
+                diagBody: $('diagBody'),
+                diagToggle: $('diagToggle'),
+                diagCopy: $('diagCopy'),
+                diagError: $('diagError')
             };
 
             var state = {
@@ -1350,37 +1423,69 @@
 
             function onGeoError(err) {
                 if (state.status !== 'running') return;
-                // 透传真实错误信息到 console，方便 iPhone Safari 调试
-                console.warn('[Runner] geolocation error code=' + err.code + ' msg=' + (err.message || '(no message)'));
 
                 var code = err.code;
+                var rawMsg = String(err.message || '');
+                console.warn('[Runner] geolocation error code=' + code +
+                    ' msg="' + rawMsg + '"');
+
                 if (code === 1) {
-                    // PERMISSION_DENIED：
-                    // 不是系统层授权状态 —— watchPosition 返回 code=1 意味着
-                    // Safari 已经**永久拒绝**了本 origin 的定位请求，不会再弹窗。
-                    // 必须引导用户去 Safari 地址栏里手动改网站设置。
-                    console.warn('[Runner] PERMISSION_DENIED — Safari 可能已永久拒绝本 origin，' +
-                        '需用户在地址栏 aA/锁图标 → 网站设置 → 位置 手动开启');
-                    setGps('err', '定位已被拒绝');
-                    showNotice(
-                        'Safari 无法获取定位权限（错误码 1）。\n' +
-                        '如已在系统设置里允许过但仍报错：\n' +
-                        '① 点击 Safari 地址栏左侧的「aA」或锁形图标\n' +
-                        '② 选择「网站设置」\n' +
-                        '③ 把「位置」改成「允许」后刷新页面',
-                        true
-                    );
+                    // PERMISSION_DENIED — Safari 拒绝了定位请求。
+                    // 但原因不止一种，必须看 error.message 来区分：
+                    //   - "User denied Geolocation"         → 网站层（或弹窗被用户点了"不允许"）
+                    //   - "Not allowed to access location services" → 系统层 Safari 定位开关关了
+                    //   - "The operation couldn't be completed" / "The operation couldn't be completed. (kCLErrorDomain error 1.)" → 精确位置关了
+                    //   - 空 message / 只有错误码           → Safari 静默拒绝，常见于精确位置或系统层
+                    var diag = { code: code, rawMsg: rawMsg };
+
+                    if (/Not allowed to access location/i.test(rawMsg)) {
+                        // 系统层没开 — 去 iPhone 设置改
+                        setGps('err', '系统定位未开启');
+                        showNotice(
+                            'iPhone 系统定位服务未开启（错误码 1）。\n' +
+                            '请打开「设置 → 隐私与安全 → 定位服务」\n' +
+                            '找到 Safari，确保"精确位置"已打开。',
+                            false
+                        );
+                        diag.hint = '系统层 Safari 定位开关关闭';
+                    } else if (/couldn't be completed|couldn’t be completed|complete/i.test(rawMsg) || rawMsg === '') {
+                        // 精确位置开关关闭 — 网站层里 Safari 对 origin 单独设置了"不精确位置"
+                        setGps('err', '精确位置未开启');
+                        showNotice(
+                            'Safari 精确位置未开启（错误码 1）。\n' +
+                            'iPhone 上点 Safari 地址栏「aA」/锁图标\n' +
+                            '→ 网站设置 → 打开"精确位置"\n' +
+                            '或系统设置 → 隐私与安全 → 定位服务 → Safari → 打开"精确位置"。',
+                            false
+                        );
+                        diag.hint = '精确位置开关关闭（iOS 15+ Safari 独立开关）';
+                    } else {
+                        // User denied Geolocation 或其他 — 网站层被拒
+                        setGps('err', '定位已被拒绝');
+                        showNotice(
+                            'Safari 无法获取定位权限（错误码 1）。\n' +
+                            '请按以下步骤修改：\n' +
+                            '① 点击 Safari 地址栏左侧的「aA」或锁形图标\n' +
+                            '② 选择「网站设置」\n' +
+                            '③ 把「位置」改成「允许」并打开"精确位置"\n' +
+                            '改完之后刷新页面再试。',
+                            false
+                        );
+                        diag.hint = '网站层 origin 独立设置为拒绝，或首次弹窗被用户拒绝';
+                    }
+
+                    showDiagnostic({ error: diag });
+                    stopRun(true); // 静默回到 idle，让用户改完设置后重新点开始
                 } else if (code === 2) {
-                    // POSITION_UNAVAILABLE：设备没开启系统定位开关，或信号极弱
                     setGps('warn', 'GPS 信号弱');
-                    showNotice('设备无法获取位置。请在 iPhone 设置中确认「隐私与安全 → 定位服务」已开启，且允许 Safari 使用定位（错误码 2）', false);
+                    showNotice('设备无法获取位置。请确认系统定位开关已开启，且在开阔处重试（错误码 2）', false);
+                    showDiagnostic({ error: { code: code, rawMsg: rawMsg } });
                 } else if (code === 3) {
-                    // TIMEOUT：watchPosition 等待新 fix 超时
                     setGps('warn', 'GPS 搜索中…');
                     showNotice('定位超时，正在继续搜索（可尝试移动到开阔处，错误码 3）', false);
                 } else {
                     setGps('warn', 'GPS 搜索中…');
-                    showNotice('定位异常：' + (err.message || String(err) + '（错误码 ' + code + '）'), false);
+                    showNotice('定位异常：' + (rawMsg || String(err)) + '（错误码 ' + code + '）', false);
                 }
             }
 
@@ -1429,34 +1534,23 @@
             }
 
             function startRun() {
-                // 在进入 running 状态之前先做权限预检，
-                // 避免 Safari 网站设置里已被拒绝时直接调用 watchPosition
-                // 立即返回 code=1 且无弹窗，让用户一头雾水
+                // 在进入 running 状态之前先做权限预检。
+                // 注意：permissions.query === 'denied' 时我们**不阻断**，
+                // 因为 Safari 某些版本下 denied 状态可能不准（尤其是精确位置开关场景），
+                // 必须实际调一次 watchPosition 才能拿到真实的 error.message 来诊断。
                 preflightPermission().then(function (perm) {
                     console.info('[Runner] permission preflight:', perm);
 
-                    if (perm.state === 'denied') {
-                        // Safari 网站设置里对该 origin 单独拒绝过 —
-                        // 这时 watchPosition 永远不会再弹窗，必须明确指引用户去改
-                        setGps('err', '定位被网站设置拒绝');
-                        showNotice(
-                            'Safari 已禁止本网站使用定位。请按以下步骤修改：\n' +
-                            '① 点击 Safari 地址栏左侧的「aA」/锁形图标\n' +
-                            '② 选择「网站设置」\n' +
-                            '③ 「位置」改成「允许」\n' +
-                            '改完之后刷新页面再试。',
-                            false
-                        );
-                        return;
-                    }
-
-                    if (perm.state === 'unsupported' && perm.isSecure === false) {
+                    if (perm.state === 'unsupported' && !perm.isSecure) {
+                        // 非安全上下文：肯定用不了 geolocation
                         setGps('err', '环境不安全');
                         showNotice('当前页面未在 HTTPS 下运行，定位不可用。请通过部署地址打开本页。', false);
+                        showDiagnostic({ preflight: perm });
                         return;
                     }
 
-                    // 预检通过：进入 running 并启动 watchPosition
+                    // 进入 running 并启动 watchPosition
+                    //（哪怕 perm.state === 'denied' 也继续，让 watchPosition 给我们真实 error.message）
                     resetSession();
                     state.status = 'running';
                     state.startedAt = Date.now();
@@ -1477,6 +1571,17 @@
                     startTicker();
                     startWatch();
                     speak('开始跑步，加油！');
+
+                    // 如果预检是 denied，先发一个预警（不阻断，等 onGeoError 给真实原因）
+                    if (perm.state === 'denied') {
+                        setGps('warn', '定位可能被网站设置拒绝');
+                        showNotice(
+                            'Safari 检测到本网站定位权限为"拒绝"。\n' +
+                            '系统可能会自动重试，也可能直接报错。\n' +
+                            '如 5 秒内仍无 GPS 信号，请看下方诊断面板改设置。',
+                            false
+                        );
+                    }
                 });
             }
 
@@ -1517,8 +1622,180 @@
                 });
             }
 
-            function stopRun() {
+            /* ---------------- diagnostic panel ---------------- */
+
+            function collectDiagInfo(extra) {
+                var ua = navigator.userAgent || '';
+                var iosMatch = /iPhone OS ([\d_]+)/.exec(ua);
+                var iosVersion = iosMatch ? iosMatch[1].replace(/_/g, '.') : null;
+                var safariMatch = /Version\/([\d.]+)/.exec(ua);
+                var safariVersion = safariMatch ? safariMatch[1] : null;
+
+                var info = {
+                    t: new Date().toISOString(),
+                    isSecure: window.isSecureContext === true,
+                    origin: location.origin,
+                    visible: document.visibilityState,
+                    geolocationExists: !!navigator.geolocation,
+                    userAgent: ua,
+                    iosVersion: iosVersion,
+                    safariVersion: safariVersion
+                };
+                if (extra && typeof extra === 'object') {
+                    for (var k in extra) {
+                        if (extra.hasOwnProperty(k)) info[k] = extra[k];
+                    }
+                }
+                return info;
+            }
+
+            function diagClass(ok) { return ok ? 'k-ok' : 'k-bad'; }
+
+            function renderDiagRow(label, value, cls) {
+                var row = document.createElement('div');
+                row.className = 'diag-row' + (cls ? ' ' + cls : '');
+                row.innerHTML = '<span class="diag-key">' + label + '</span>' +
+                    '<span class="diag-val"></span>';
+                row.querySelector('.diag-val').textContent = value;
+                return row;
+            }
+
+            function showDiagnostic(extra) {
+                var info = collectDiagInfo(extra);
+
+                // 异步补全 permissions.query 状态（同步时可能还没算完）
+                if (navigator.permissions && navigator.permissions.query) {
+                    navigator.permissions.query({ name: 'geolocation' }).then(function (p) {
+                        info.permState = p.state;
+                        renderDiag(info);
+                    }).catch(function (e) {
+                        info.permState = '异常: ' + (e && e.name || String(e));
+                        renderDiag(info);
+                    });
+                } else {
+                    info.permState = 'permissions API 不支持';
+                    renderDiag(info);
+                }
+            }
+
+            function renderDiag(info) {
+                el.diagCard.classList.remove('hidden');
+                el.diagBody.innerHTML = '';
+
+                // 1. 安全上下文
+                el.diagBody.appendChild(renderDiagRow('HTTPS (安全上下文)',
+                    info.isSecure ? '✅ 是' : '❌ 否（定位必挂）',
+                    info.isSecure ? 'k-ok' : 'k-bad'));
+
+                // 2. Geolocation API 是否存在
+                el.diagBody.appendChild(renderDiagRow('Geolocation API',
+                    info.geolocationExists ? '✅ 存在' : '❌ 不存在',
+                    info.geolocationExists ? 'k-ok' : 'k-bad'));
+
+                // 3. 权限状态
+                var permOk = info.permState === 'granted';
+                var permClass = permOk ? 'k-ok' : (info.permState === 'prompt' ? 'k-warn' : 'k-bad');
+                el.diagBody.appendChild(renderDiagRow('网站层定位权限',
+                    info.permState || '加载中…', permClass));
+
+                // 4. 页面可见性
+                el.diagBody.appendChild(renderDiagRow('页面可见性',
+                    info.visible, info.visible === 'visible' ? 'k-ok' : 'k-warn'));
+
+                // 5. iOS / Safari 版本
+                var version = (info.iosVersion ? 'iOS ' + info.iosVersion : (info.safariVersion ? 'Safari ' + info.safariVersion : '非 iOS Safari'));
+                el.diagBody.appendChild(renderDiagRow('系统版本', version));
+
+                // 6. Origin
+                el.diagBody.appendChild(renderDiagRow('Origin', info.origin));
+
+                // 7. 错误详情（如果有）
+                if (info.error) {
+                    var er = info.error;
+                    el.diagBody.appendChild(renderDiagRow('watchPosition 错误码', String(er.code), 'k-bad'));
+                    if (er.rawMsg !== undefined) {
+                        el.diagBody.appendChild(renderDiagRow('Safari 原始错误信息',
+                            er.rawMsg || '(空)', 'k-bad'));
+                    }
+                    if (er.hint) {
+                        var hintRow = document.createElement('div');
+                        hintRow.className = 'diag-row k-bad';
+                        hintRow.innerHTML = '<span class="diag-key">建议修复</span><span class="diag-val"></span>';
+                        hintRow.querySelector('.diag-val').textContent = er.hint;
+                        el.diagBody.appendChild(hintRow);
+                    }
+                }
+
+                // 8. 预检状态（始终显示，showDiagnostic 已异步拿到 permState）
+                var pfState = info.permState || '未知';
+                var pfClass = pfState === 'granted' ? 'k-ok' : (pfState === 'prompt' ? 'k-warn' : 'k-bad');
+                el.diagBody.appendChild(renderDiagRow('网站层定位权限（permissions.query）', pfState, pfClass));
+                if (info.preflight && info.preflight.message) {
+                    el.diagBody.appendChild(renderDiagRow('预检说明', info.preflight.message));
+                }
+
+                // 9. 用户代理（截断）
+                var uaShort = (info.userAgent || '').length > 120 ?
+                    info.userAgent.slice(0, 120) + '…' : info.userAgent;
+                el.diagBody.appendChild(renderDiagRow('UserAgent', uaShort));
+
+                // 错误区域（pre-line 渲染多行建议）
+                var errText = [];
+                if (info.error && info.error.hint) errText.push('根因定位：' + info.error.hint);
+                if (errText.length) {
+                    el.diagError.textContent = errText.join('\n\n');
+                    el.diagError.classList.remove('hidden');
+                } else {
+                    el.diagError.classList.add('hidden');
+                }
+            }
+
+            function diagCopy() {
+                var info = collectDiagInfo();
+                showDiagnostic(); // 先保证面板已渲染拿到最新 permState
+                setTimeout(function () {
+                    var text = '=== Runner 定位诊断 ===\n';
+                    text += '时间: ' + info.t + '\n';
+                    text += 'HTTPS: ' + info.isSecure + '\n';
+                    text += 'Geolocation API: ' + info.geolocationExists + '\n';
+                    text += 'Origin: ' + info.origin + '\n';
+                    text += '可见性: ' + info.visible + '\n';
+                    text += 'iOS 版本: ' + (info.iosVersion || '未知') + '\n';
+                    text += 'Safari 版本: ' + (info.safariVersion || '未知') + '\n';
+                    text += 'UserAgent: ' + info.userAgent + '\n';
+                    // 从 DOM 面板里再抓一次（包含 preflight 和 error）
+                    var rows = el.diagBody.querySelectorAll('.diag-row');
+                    rows.forEach(function (row) {
+                        var key = row.querySelector('.diag-key');
+                        var val = row.querySelector('.diag-val');
+                        if (key && val) text += key.textContent + ': ' + val.textContent + '\n';
+                    });
+                    navigator.clipboard.writeText(text).then(
+                        function () { toast('诊断信息已复制'); },
+                        function () { toast('复制失败，请手动截图'); }
+                    );
+                }, 300);
+            }
+
+            function stopRun(silent) {
                 if (state.status !== 'running') return;
+
+                // silent=true 时：静默回到 idle，不播报、不进入 finished，
+                // 用于 GPS code=1 权限错误后让用户改完设置重新点开始
+                if (silent) {
+                    stopTicker();
+                    stopWatch();
+                    resetSession(true); // keepGps=true：保留 onGeoError 设的具体错误文案
+                    el.stopBtn.classList.add('hidden');
+                    el.actionRow.classList.add('hidden');
+                    el.finishHint.classList.add('hidden');
+                    el.startBtn.classList.remove('hidden');
+                    // 注意：不调 setGps / hideNotice —— 保留 onGeoError 设的错误文案
+                    renderPills();
+                    updateMetrics();
+                    return;
+                }
+
                 var now = Date.now();
                 state.totalTime = now - state.startedAt;
                 state.status = 'finished';
@@ -1593,7 +1870,7 @@
                 toast('已放弃本次记录');
             }
 
-            function resetSession() {
+            function resetSession(keepGps) {
                 stopWatch();
                 stopTicker();
 
@@ -1623,10 +1900,12 @@
                 el.saveBtn.disabled = false;
                 el.saveBtn.style.opacity = '';
 
-                setGps('', 'GPS 未连接');
+                // keepGps=true 时保留当前 GPS 徽标和 notice
+                //（用于 GPS 权限错误后让具体错误文案保留）
+                if (!keepGps) setGps('', 'GPS 未连接');
                 renderPills();
                 updateMetrics();
-                hideNotice();
+                if (!keepGps) hideNotice();
             }
 
             /* ---------------- init ---------------- */
@@ -1672,6 +1951,20 @@
                     toast('历史记录已清空');
                 });
 
+                // 诊断面板的折叠/展开和复制
+                el.diagToggle.addEventListener('click', function () {
+                    var body = el.diagBody;
+                    if (body.classList.contains('hidden')) {
+                        body.classList.remove('hidden');
+                        el.diagToggle.textContent = '收起';
+                        showDiagnostic(); // 展开时刷新一次状态
+                    } else {
+                        body.classList.add('hidden');
+                        el.diagToggle.textContent = '展开';
+                    }
+                });
+                el.diagCopy.addEventListener('click', diagCopy);
+
                 // iPhone Safari 切到后台后会静默停止 watchPosition，
                 // 回到前台时如果还在跑步需要重启 GPS。
                 // 注意：visibilitychange 不是用户手势，这里不能调 speak()，只能重启 watch。
@@ -1683,6 +1976,8 @@
                             if (state.status === 'running') startWatch();
                         }, 300);
                     }
+                    // 如果诊断面板已打开，同步刷新可见性行
+                    if (!el.diagCard.classList.contains('hidden')) showDiagnostic();
                 });
 
                 Array.prototype.forEach.call(document.querySelectorAll('.nav-btn'), function (btn) {
