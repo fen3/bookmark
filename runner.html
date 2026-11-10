@@ -354,7 +354,7 @@
 
         .notice {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
             gap: 10px;
             margin-top: 12px;
@@ -363,8 +363,9 @@
             background: rgba(248, 113, 113, .08);
             border: 1px solid rgba(248, 113, 113, .22);
             font-size: 12px;
-            line-height: 1.4;
+            line-height: 1.5;
             color: #fca5a5;
+            white-space: pre-line;
         }
 
         .notice-btn {
@@ -1354,9 +1355,21 @@
 
                 var code = err.code;
                 if (code === 1) {
-                    // PERMISSION_DENIED：用户在弹窗点了"不允许"
-                    setGps('err', '定位已关闭');
-                    showNotice('需要定位权限才能记录跑步（错误码 1）', true);
+                    // PERMISSION_DENIED：
+                    // 不是系统层授权状态 —— watchPosition 返回 code=1 意味着
+                    // Safari 已经**永久拒绝**了本 origin 的定位请求，不会再弹窗。
+                    // 必须引导用户去 Safari 地址栏里手动改网站设置。
+                    console.warn('[Runner] PERMISSION_DENIED — Safari 可能已永久拒绝本 origin，' +
+                        '需用户在地址栏 aA/锁图标 → 网站设置 → 位置 手动开启');
+                    setGps('err', '定位已被拒绝');
+                    showNotice(
+                        'Safari 无法获取定位权限（错误码 1）。\n' +
+                        '如已在系统设置里允许过但仍报错：\n' +
+                        '① 点击 Safari 地址栏左侧的「aA」或锁形图标\n' +
+                        '② 选择「网站设置」\n' +
+                        '③ 把「位置」改成「允许」后刷新页面',
+                        true
+                    );
                 } else if (code === 2) {
                     // POSITION_UNAVAILABLE：设备没开启系统定位开关，或信号极弱
                     setGps('warn', 'GPS 信号弱');
@@ -1416,26 +1429,92 @@
             }
 
             function startRun() {
-                resetSession();
-                state.status = 'running';
-                state.startedAt = Date.now();
-                state.splitStartAt = state.startedAt;
+                // 在进入 running 状态之前先做权限预检，
+                // 避免 Safari 网站设置里已被拒绝时直接调用 watchPosition
+                // 立即返回 code=1 且无弹窗，让用户一头雾水
+                preflightPermission().then(function (perm) {
+                    console.info('[Runner] permission preflight:', perm);
 
-                try {
-                    localStorage.setItem(ACTIVE_KEY, String(state.startedAt));
-                } catch (e) { /* ignore */ }
+                    if (perm.state === 'denied') {
+                        // Safari 网站设置里对该 origin 单独拒绝过 —
+                        // 这时 watchPosition 永远不会再弹窗，必须明确指引用户去改
+                        setGps('err', '定位被网站设置拒绝');
+                        showNotice(
+                            'Safari 已禁止本网站使用定位。请按以下步骤修改：\n' +
+                            '① 点击 Safari 地址栏左侧的「aA」/锁形图标\n' +
+                            '② 选择「网站设置」\n' +
+                            '③ 「位置」改成「允许」\n' +
+                            '改完之后刷新页面再试。',
+                            false
+                        );
+                        return;
+                    }
 
-                el.startBtn.classList.add('hidden');
-                el.stopBtn.classList.remove('hidden');
-                el.actionRow.classList.add('hidden');
-                el.finishHint.classList.add('hidden');
+                    if (perm.state === 'unsupported' && perm.isSecure === false) {
+                        setGps('err', '环境不安全');
+                        showNotice('当前页面未在 HTTPS 下运行，定位不可用。请通过部署地址打开本页。', false);
+                        return;
+                    }
 
-                renderPills();
-                updateMetrics();
-                openMap();
-                startTicker();
-                startWatch();
-                speak('开始跑步，加油！');
+                    // 预检通过：进入 running 并启动 watchPosition
+                    resetSession();
+                    state.status = 'running';
+                    state.startedAt = Date.now();
+                    state.splitStartAt = state.startedAt;
+
+                    try {
+                        localStorage.setItem(ACTIVE_KEY, String(state.startedAt));
+                    } catch (e) { /* ignore */ }
+
+                    el.startBtn.classList.add('hidden');
+                    el.stopBtn.classList.remove('hidden');
+                    el.actionRow.classList.add('hidden');
+                    el.finishHint.classList.add('hidden');
+
+                    renderPills();
+                    updateMetrics();
+                    openMap();
+                    startTicker();
+                    startWatch();
+                    speak('开始跑步，加油！');
+                });
+            }
+
+            function preflightPermission() {
+                // 统一返回 { state: 'granted' | 'denied' | 'prompt' | 'unsupported' | 'error', isSecure, message }
+                return new Promise(function (resolve) {
+                    var isSecure = window.isSecureContext === true;
+
+                    if (!navigator.geolocation) {
+                        resolve({ state: 'unsupported', isSecure: isSecure, message: 'geolocation 不支持' });
+                        return;
+                    }
+
+                    if (!isSecure) {
+                        resolve({ state: 'unsupported', isSecure: false, message: '非安全上下文' });
+                        return;
+                    }
+
+                    if (!navigator.permissions || !navigator.permissions.query) {
+                        // 老浏览器/部分 Android：直接调 watchPosition 等系统弹窗
+                        resolve({ state: 'prompt', isSecure: true, message: 'permissions API 不支持，等待系统弹窗' });
+                        return;
+                    }
+
+                    navigator.permissions.query({ name: 'geolocation' }).then(function (p) {
+                        var state = p.state;
+                        console.info('[Runner] permissions.query =>', state);
+                        if (state === 'granted' || state === 'denied' || state === 'prompt') {
+                            resolve({ state: state, isSecure: true, message: 'permissions.query=' + state });
+                        } else {
+                            resolve({ state: 'unsupported', isSecure: true, message: '未知 permissions 状态：' + state });
+                        }
+                    }).catch(function (e) {
+                        // 某些 iOS Safari 版本 permissions.query 会抛 NotSupportedError
+                        console.warn('[Runner] permissions.query failed', e);
+                        resolve({ state: 'unsupported', isSecure: isSecure, message: 'permissions.query 异常：' + (e && e.name || String(e)) });
+                    });
+                });
             }
 
             function stopRun() {
