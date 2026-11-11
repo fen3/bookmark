@@ -164,15 +164,10 @@
       renderSlots();
     }
     function setNumber(n) {
-      // 1. 不管当前激活槽是不是空，先把数字填进去（支持重复数字覆盖）
+      // 先把当前激活格填上（无论之前是不是空）
       slots[activeIdx] = n;
-      // 2. 自动跳到下一个**空的**槽
-      var nextEmpty = -1;
-      for (var i = (activeIdx + 1) % 4; i !== activeIdx; i = (i + 1) % 4) {
-        if (slots[i] === null) { nextEmpty = i; break; }
-      }
-      // 如果没找到空槽（说明都填满了），保持当前激活槽（方便修改）
-      if (nextEmpty !== -1) activeIdx = nextEmpty;
+      // 直接跳到下一个位置（用户要的就是这个行为）
+      activeIdx = (activeIdx + 1) % 4;
       renderSlots();
     }
 
@@ -268,11 +263,10 @@
           slots = a.slice();
           activeIdx = 0;
           renderSlots();
-          resultEl.textContent = '算一算吧~';
+          resultEl.textContent = '点数字会覆盖，也可以直接点「查看答案」~';
           return;
         }
       }
-      // fallback (very unlikely with 1-13)
       slots = [3, 3, 8, 3]; activeIdx = 0; renderSlots();
     }
 
