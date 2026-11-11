@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>开发日志 · 24 点小游戏</title>
+    <meta name="description" content="从一句话到上线：24 点小游戏的五次对话式迭代，以及那个「自动跳转没生效」的低级坑。">
+    <link rel="icon" href="/favicon.png">
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <style>
+        .article { max-width: 760px; margin: 0 auto; padding: 60px 24px 40px; }
+        .back { display: inline-block; margin-bottom: 28px; color: var(--muted); font-size: 13px; text-decoration: none; }
+        .back:hover { color: var(--accent); }
+        .article h1 { margin: 0 0 10px; font-size: clamp(26px, 4vw, 38px); line-height: 1.3; letter-spacing: -0.01em; text-wrap: balance; }
+        .meta-line { margin-bottom: 34px; color: #64748b; font-size: 13px; }
+        .meta-line span+span::before { content: "·"; margin: 0 8px; }
+        .article h2 { margin: 40px 0 14px; padding-left: 11px; border-left: 3px solid var(--accent); font-size: 18px; }
+        .article p, .article li { color: #c2cfdf; font-size: 15px; line-height: 1.9; }
+        .article p { margin: 0 0 16px; }
+        .article ul, .article ol { margin: 0 0 16px; padding-left: 22px; }
+        .article li { margin-bottom: 8px; }
+        .article strong { color: #eaf1fb; }
+        .article code { padding: 2px 6px; border: 1px solid var(--line); border-radius: 6px; background: #0d141d; color: #9dc4ff; font-size: 13px; }
+        .article a { color: var(--accent); text-decoration: none; }
+        .article a:hover { text-decoration: underline; }
+        blockquote { margin: 0 0 20px; padding: 14px 18px; border: 1px solid var(--line); border-left: 3px solid var(--accent-2); border-radius: 8px; background: rgba(139, 92, 246, 0.06); color: #b9c6d8; font-size: 14px; }
+        blockquote p:last-child { margin-bottom: 0; }
+        .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0 28px; }
+        .stat { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); text-align: center; }
+        .stat b { display: block; margin-bottom: 4px; background: linear-gradient(120deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 24px; }
+        .stat span { color: var(--muted); font-size: 12px; }
+        .article table { width: 100%; margin: 0 0 20px; border-collapse: collapse; font-size: 14px; }
+        .article th, .article td { padding: 10px 12px; border: 1px solid var(--line); text-align: left; }
+        .article th { background: #0d141d; color: #eaf1fb; font-weight: 600; }
+        .article td { color: #c2cfdf; }
+        .article .version { padding: 12px 16px; border: 1px dashed rgba(34,211,238,0.35); border-radius: 10px; background: rgba(34,211,238,0.05); margin: 14px 0; }
+        .article .version .vtag { color: var(--cyan, #22d3ee); font-size: 12px; font-weight: 700; letter-spacing: 0.05em; }
+        .article .version .quote { color: #9fb0c5; font-style: italic; margin: 4px 0 8px; font-size: 14px; }
+        .article .version .changes { color: #c2cfdf; font-size: 14px; line-height: 1.8; }
+        @media (max-width: 600px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+        .foot { margin-top: 60px; color: var(--muted); font-size: 12px; text-align: center; }
+    </style>
+</head>
+
+<body>
+    <article class="article">
+        <a class="back" href="../blog.html">← 返回开发日志</a>
+
+        <h1>从一个按钮开始：24 点小游戏的五次对话迭代</h1>
+        <div class="meta-line">
+            <span>2026-11-11</span>
+            <span>前端小游戏</span>
+            <span>JavaScript · 零依赖</span>
+        </div>
+
+        <p>这是网站上第 N 个小工具，但迭代密度最高的一个——用户从「做个 24 点游戏」到最终版，<strong>同一次会话里改了五轮</strong>，每一轮都是一句话需求。记下来看看：纯靠对话驱动的开发，能走到什么程度，以及中间踩了什么不该踩的坑。</p>
+
+        <div class="stat-row">
+            <div class="stat"><b>5</b><span>迭代轮次</span></div>
+            <div class="stat"><b>200ms</b><span>求解耗时</span></div>
+            <div class="stat"><b>0</b><span>第三方依赖</span></div>
+            <div class="stat"><b>1</b><span>commit 修复坑</span></div>
+        </div>
+
+        <h2>v1：一个按钮 + 四个输入框</h2>
+        <div class="version">
+            <div class="vtag">对话 v1</div>
+            <div class="quote">「做个 24 点游戏页面，点随机可以随机出个题目，也可以手动输入 4 个数，有个解答按钮可以看答案。」</div>
+            <div class="changes">写了一个单文件 HTML：四个 input 框、一个「🎲 随机出题」、一个「💡 查看答案」、难度默认三档（简单 1–10 / 普通 1–13 / 困难 1–20）。核心是一个 200 行不到的求解器——递归枚举所有数字排列 × 所有运算符组合 × 所有括号位置，过滤除零后比对结果。跑了几个经典难题验证：<code>3,3,8,3</code> → <code>8 ÷ (3 − 8÷3) = 24</code> ✅；<code>1,5,5,5</code> → <code>(5 − 1÷5) × 5 = 24</code> ✅。</div>
+        </div>
+        <p>这一版直接 commit 推到 GitHub Pages，线上 URL 拿到。</p>
+
+        <h2>v2：去掉难度，改成 1–13 数字键盘</h2>
+        <div class="version">
+            <div class="vtag">对话 v2</div>
+            <div class="quote">「按中等 1-13 就可以了，去掉简单和困难的难度。输入数字在页面放 1-13 个按钮。规则保留在最下面。」</div>
+            <div class="changes">删掉难度切换按钮，原来的 input 框换成四个带序号的「格子」+ 下方 13 个数字按钮。点格子激活（高亮黄色），再点数字填入。已使用过的数字会变灰禁用，避免重复（这是埋下的第一个坑，后面还要改回来）。规则挪到页面底部。</div>
+        </div>
+
+        <h2>v3：允许重复输入</h2>
+        <div class="version">
+            <div class="vtag">对话 v3</div>
+            <div class="quote">「数字可重复输入。」</div>
+            <div class="changes">撤掉了「已用过数字变灰」的逻辑——像 <code>3,3,8,3</code> 这种经典题需要连续点三次 3，之前那版会把 3 点第二次就锁死。改完之后所有数字按钮永远可点，重复数字直接覆盖。</div>
+        </div>
+
+        <h2>v4：填入后自动跳下一格</h2>
+        <div class="version">
+            <div class="vtag">对话 v4</div>
+            <div class="quote">「在输入数字后自动跳到下一个数字。」</div>
+            <div class="changes">在 <code>setNumber()</code> 里加了跳转逻辑：填完当前激活格后，循环找「下一个空着的格子」，找到就把 <code>activeIdx</code> 跳过去。代码看起来没错，但线上点完数字，<strong>光标纹丝不动</strong>。</div>
+        </div>
+
+        <h2>v5：一个低级 bug 修掉了</h2>
+        <div class="version">
+            <div class="vtag">对话 v5</div>
+            <div class="quote">「当前格子输入后，直接跳下一个格子。现在页面还是没跳。」</div>
+            <div class="changes">找到根因了：<strong>用户是从「随机出题」进来的</strong>——随机出题把 4 个格子都填满了，所以我那套「找下一个空槽位」的循环永远找不到空槽，当然就不跳了。这完全是逻辑漏洞：<em>我假设了用户一定是从空白开始填的</em>，但用户更可能先抽题、再改一两个数字。改成无条件 <code>activeIdx = (activeIdx + 1) % 4</code>，绕完一圈还能回到第一个格子覆盖修改。一行代码搞定。</div>
+        </div>
+
+        <h2>技术备忘：24 点求解器怎么写</h2>
+        <p>核心思路是<strong>枚举所有可能的表达式结构</strong>。四个数 <code>a b c d</code>，三个运算符 <code>op1 op2 op3</code>，所有括号位置——不枚举等于没解。具体做法：</p>
+        <ol>
+            <li>先对四个数做去重排列（避免同样的数字因为顺序重复跑），比如 <code>[1,1,1,1]</code> 只有一种排列；</li>
+            <li>递归枚举所有「先算哪两个数，算完放回去，再算哪两个」的顺序——这等价于枚举所有二叉树叶子节点的求值顺序；</li>
+            <li>每算一次都检查 <code>Math.abs(result − 24) < 1e-6</code>，因为除法会产生浮点数；</li>
+            <li>返回的解做一层规范化去重（去掉空格、把 <code>×</code> 换 <code>*</code>），展示前 8 种。</li>
+        </ol>
+        <p>1–13 范围下，最坏情况（四个数都是不同值）排列数是 <code>4! = 24</code>，运算符组合是 <code>4³ = 64</code>，括号结构是卡特兰数 <code>C₃ = 5</code>，总上限约 <code>24 × 64 × 5 = 7680</code> 次求值，浏览器里一次 <strong>200ms 以内跑完</strong>。</p>
+
+        <h2>这次迭代的小教训</h2>
+        <table>
+            <thead>
+                <tr><th>教训</th><th>对应哪轮</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>不要预设用户路径</strong>：我假设用户从空白格子开始填，所以写了「找下一个空槽」的逻辑。但实际场景里「先抽题、再改数字」很常见。</td><td>v4 → v5</td></tr>
+                <tr><td><strong>初始状态要能跑完整流程</strong>：随机出题后的状态应该等于用户手动填满的状态，任何依赖「空格子」的逻辑都要考虑这个分支。</td><td>v4 → v5</td></tr>
+                <tr><td><strong>数字键盘要不要禁用过的键</strong>：取决于这个游戏里有没有可能重复。24 点是允许重复的，那禁用就是反直觉的。</td><td>v2 → v3</td></tr>
+                <tr><td><strong>求解器在提交前跑几个难题</strong>：<code>3,3,8,3</code> 和 <code>1,5,5,5</code> 没解对就等于白写。</td><td>v1</td></tr>
+            </tbody>
+        </table>
+
+        <p>最终页面 <a href="../english-words-kids/game24.html">game24.html</a> 上线了，一共两次 commit：第一次 v1–v4 一起，第二次专门修那个自动跳转的 bug。下次再遇到类似的多轮迭代需求，把每一轮的用户原话记下来，回头看会发现——很多坑其实在第一次实现的时候就埋下了，只是当时测试场景没覆盖到而已。</p>
+    </article>
+
+    <footer class="foot">
+        写于 2026-11-11 · <a href="../blog.html">返回开发日志</a>
+    </footer>
+</body>
+
+</html>
