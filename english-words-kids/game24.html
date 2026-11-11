@@ -1,0 +1,275 @@
+<!-- 24 Point Game -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>24 点小游戏</title>
+  <style>
+    :root {
+      --bg: #0f172a; --bg2: #1e293b; --bg3: #334155;
+      --ink: #f1f5f9; --muted: #94a3b8;
+      --cyan: #22d3ee; --pink: #f472b6; --yellow: #fbbf24; --green: #4ade80; --red: #f87171;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(ellipse at top, #1e293b 0%, var(--bg) 60%);
+      color: var(--ink); min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; padding: 1.5rem 1rem;
+    }
+    h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: 0.05em; }
+    h1 span { color: var(--yellow); }
+    .sub { color: var(--muted); font-size: 0.85rem; margin-top: 0.25rem; }
+
+    .card {
+      margin-top: 1.5rem; background: linear-gradient(180deg, rgba(51,65,85,0.5), rgba(30,41,59,0.6));
+      backdrop-filter: blur(10px); border: 1px solid rgba(148,163,184,0.15);
+      border-radius: 20px; padding: 1.5rem; width: 100%; max-width: 460px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .nums { display: flex; gap: 0.8rem; justify-content: center; margin-bottom: 1.3rem; }
+    .num-input {
+      width: 78px; height: 78px; text-align: center; font-size: 2rem; font-weight: 800;
+      border: 2px solid rgba(34,211,238,0.4); border-radius: 16px;
+      background: rgba(15,23,42,0.7); color: var(--cyan); font-family: inherit;
+      outline: none; transition: border 0.2s, box-shadow 0.2s;
+    }
+    .num-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 4px rgba(34,211,238,0.2); }
+    .num-input.invalid { border-color: var(--red); color: var(--red); }
+    .num-input.small { font-size: 1.4rem; }
+
+    .ops-row {
+      display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;
+      margin-bottom: 1.2rem;
+    }
+    .op-btn {
+      padding: 0.5rem 1rem; border-radius: 10px; border: 1px solid rgba(148,163,184,0.2);
+      background: rgba(15,23,42,0.5); color: var(--muted); cursor: pointer; font-size: 0.8rem;
+      transition: all 0.15s;
+    }
+    .op-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+    .op-btn.active { background: var(--cyan); color: var(--bg); border-color: var(--cyan); font-weight: 700; }
+
+    .btns { display: flex; gap: 0.7rem; }
+    button.main {
+      flex: 1; padding: 0.8rem; border-radius: 12px; border: none;
+      font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit;
+      transition: transform 0.1s;
+    }
+    button.main:active { transform: scale(0.97); }
+    button.rand { background: linear-gradient(135deg, var(--pink), var(--red)); color: #fff; }
+    button.solve { background: linear-gradient(135deg, var(--cyan), #0ea5e9); color: var(--bg); }
+    button.solve:disabled { background: var(--bg3); color: var(--muted); cursor: not-allowed; }
+
+    .result {
+      margin-top: 1.3rem; border-radius: 14px; padding: 1rem;
+      background: rgba(15,23,42,0.6); border: 1px dashed rgba(148,163,184,0.2);
+      min-height: 60px; font-size: 0.95rem;
+    }
+    .result .ok { color: var(--green); font-weight: 700; font-size: 1rem; }
+    .result .bad { color: var(--red); font-weight: 700; }
+    .result ul { margin-top: 0.5rem; padding-left: 1.2rem; }
+    .result li { margin: 0.3rem 0; color: var(--cyan); font-family: "Menlo", monospace; font-size: 0.85rem; }
+
+    .explain { margin-top: 1rem; color: var(--muted); font-size: 0.78rem; line-height: 1.6; text-align: center; }
+    .explain b { color: var(--yellow); }
+
+    @media (max-width: 380px) {
+      .num-input { width: 68px; height: 68px; font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <h1><span>24</span> 点小游戏</h1>
+  <div class="sub">用加减乘除把 4 个数算出 24</div>
+
+  <div class="card">
+    <div class="nums">
+      <input class="num-input" id="n0" type="text" inputmode="numeric" maxlength="3">
+      <input class="num-input" id="n1" type="text" inputmode="numeric" maxlength="3">
+      <input class="num-input" id="n2" type="text" inputmode="numeric" maxlength="3">
+      <input class="num-input" id="n3" type="text" inputmode="numeric" maxlength="3">
+    </div>
+
+    <div class="ops-row">
+      <button class="op-btn" data-op="easy">简单 (1-10)</button>
+      <button class="op-btn active" data-op="normal">普通 (1-13)</button>
+      <button class="op-btn" data-op="hard">困难 (1-20)</button>
+    </div>
+
+    <div class="btns">
+      <button class="main rand" id="randBtn">🎲 随机出题</button>
+      <button class="main solve" id="solveBtn" disabled>💡 查看答案</button>
+    </div>
+
+    <div class="result" id="result">随机一个题目开始吧~</div>
+
+    <div class="explain">
+      规则：把 4 个数<strong>全部用上</strong>，用 <b>+ - × ÷</b> 和括号组合算出 24。<br>
+      点「🎲 随机出题」抽题，或自己在方框里<strong>手动输入</strong> 4 个正整数后点「查看答案」。
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var ops = ['+', '-', '*', '/'];
+    var opLevel = 'normal';
+    var inputs = [0,1,2,3].map(function (i) { return document.getElementById('n'+i); });
+
+    // ---- 24 solver ----
+    function solve24(nums) {
+      // 递归枚举所有排列 + 所有运算符组合 + 所有括号位置
+      // 返回数组（可能有多个解）
+      var results = [];
+
+      function combo(arr) {
+        if (arr.length === 1) return [arr];
+        var out = [];
+        for (var i = 0; i < arr.length; i++) {
+          var rest = arr.slice(0, i).concat(arr.slice(i+1));
+          combo(rest).forEach(function (c) { out.push([arr[i]].concat(c)); });
+        }
+        return out;
+      }
+
+      function expr(a, b, op) {
+        if (op === '+') return { v: a.v + b.v, s: '(' + a.s + ' + ' + b.s + ')' };
+        if (op === '-') return { v: a.v - b.v, s: '(' + a.s + ' - ' + b.s + ')' };
+        if (op === '*') return { v: a.v * b.v, s: '(' + a.s + ' × ' + b.s + ')' };
+        if (op === '/') {
+          if (Math.abs(b.v) < 1e-9) return null;
+          return { v: a.v / b.v, s: '(' + a.s + ' ÷ ' + b.s + ')' };
+        }
+        return null;
+      }
+
+      function compute(list) {
+        if (list.length === 1) return [list[0]];
+        var out = [];
+        for (var i = 0; i < list.length - 1; i++) {
+          for (var j = i+1; j < list.length; j++) {
+            for (var k = 0; k < ops.length; k++) {
+              var r = expr(list[i], list[j], ops[k]);
+              if (r === null) continue;
+              var rest = [];
+              for (var m = 0; m < list.length; m++) if (m !== i && m !== j) rest.push(list[m]);
+              rest.unshift(r);
+              compute(rest).forEach(function (x) { out.push(x); });
+            }
+          }
+        }
+        return out;
+      }
+
+      var perms = combo(nums.map(function (x) { return { v: x, s: String(x) }; }));
+      var seen = {};
+      for (var p = 0; p < perms.length; p++) {
+        var all = compute(perms[p]);
+        for (var q = 0; q < all.length; q++) {
+          if (Math.abs(all[q].v - 24) < 1e-6 && !seen[all[q].s]) {
+            seen[all[q].s] = true;
+            results.push(all[q].s);
+          }
+        }
+      }
+      return results;
+    }
+
+    // ---- UI ----
+    function setNums(arr) {
+      arr.forEach(function (n, i) {
+        inputs[i].value = n;
+        inputs[i].classList.remove('invalid', 'small');
+        if (String(n).length >= 3) inputs[i].classList.add('small');
+      });
+      updateSolveState();
+      document.getElementById('result').textContent = '算一算吧~';
+    }
+
+    function updateSolveState() {
+      var ok = inputs.every(function (inp) {
+        var v = parseInt(inp.value, 10);
+        return !isNaN(v) && v > 0 && v <= 99;
+      });
+      document.getElementById('solveBtn').disabled = !ok;
+    }
+
+    function getNums() {
+      return inputs.map(function (inp) { return parseInt(inp.value, 10); });
+    }
+
+    function randomNums() {
+      var max = opLevel === 'easy' ? 10 : opLevel === 'hard' ? 20 : 13;
+      for (var tries = 0; tries < 500; tries++) {
+        var a = [], solutions;
+        for (var i = 0; i < 4; i++) a.push(1 + Math.floor(Math.random() * max));
+        solutions = solve24(a);
+        if (solutions.length > 0) return a;
+      }
+      return [2,3,4,5];
+    }
+
+    function showResult() {
+      var nums = getNums();
+      var bad = [];
+      nums.forEach(function (v, i) {
+        if (isNaN(v) || v <= 0 || v > 99) { bad.push(i); inputs[i].classList.add('invalid'); }
+        else inputs[i].classList.remove('invalid');
+      });
+      if (bad.length) {
+        document.getElementById('result').innerHTML = '<span class="bad">请在 4 个方框里各填一个 1-99 的整数</span>';
+        return;
+      }
+      var sols = solve24(nums);
+      var r = document.getElementById('result');
+      if (sols.length === 0) {
+        r.innerHTML = '<span class="bad">😢 这 4 个数<strong>没有解</strong>（24 点里大约 1/15 的情况无解），换一组试试？</span>';
+      } else {
+        var html = '<span class="ok">✨ 找到 ' + sols.length + ' 种解：</span><ul>';
+        // 去重 + 限制 8 条
+        var shown = {};
+        var count = 0;
+        for (var i = 0; i < sols.length && count < 8; i++) {
+          // 规范化：交换律 + 结合律的不同括号会产生同解的等价形式，简单过滤一下
+          var key = sols[i].replace(/\s/g,'').replace(/×|\*/g,'*').replace(/÷|\//g,'/');
+          if (shown[key]) continue;
+          shown[key] = true; count++;
+          html += '<li>' + sols[i] + ' = 24</li>';
+        }
+        if (sols.length > count) html += '<li style="color:var(--muted);">……还有 ' + (sols.length - count) + ' 种</li>';
+        html += '</ul>';
+        r.innerHTML = html;
+      }
+    }
+
+    inputs.forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (parseInt(this.value, 10) > 99) this.value = '99';
+        this.classList.remove('invalid', 'small');
+        if (this.value.length >= 3) this.classList.add('small');
+        updateSolveState();
+      });
+    });
+
+    document.getElementById('randBtn').addEventListener('click', function () {
+      setNums(randomNums());
+    });
+    document.getElementById('solveBtn').addEventListener('click', showResult);
+
+    document.querySelectorAll('.op-btn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        document.querySelectorAll('.op-btn').forEach(function (x) { x.classList.remove('active'); });
+        b.classList.add('active');
+        opLevel = b.getAttribute('data-op');
+      });
+    });
+
+    // 初始给一组
+    setNums([3, 3, 8, 8]);
+  })();
+  </script>
+</body>
+</html>
