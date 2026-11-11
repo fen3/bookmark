@@ -146,10 +146,9 @@
       updateSolve();
     }
     function renderNumpad() {
-      var used = {};
-      slots.forEach(function (v) { if (v !== null) used[v] = true; });
+      // 所有数字按钮永远可点，允许重复输入
       numpadEl.querySelectorAll('.num').forEach(function (b) {
-        b.classList.toggle('used', !!used[parseInt(b.dataset.n, 10)]);
+        b.classList.remove('used');
       });
     }
     function updateSolve() {
@@ -165,17 +164,15 @@
       renderSlots();
     }
     function setNumber(n) {
-      // fill the first null slot, or replace currently active
-      if (slots[activeIdx] === null) {
-        slots[activeIdx] = n;
-        // auto-advance to next empty slot
-        for (var i = 0; i < 4; i++) if (slots[i] === null) { activeIdx = i; break; }
-      } else {
-        // if current active is filled, pick the next empty one
-        var filled = slots.indexOf(null);
-        if (filled === -1) { slots[activeIdx] = n; }
-        else { activeIdx = filled; slots[activeIdx] = n; }
+      // 1. 不管当前激活槽是不是空，先把数字填进去（支持重复数字覆盖）
+      slots[activeIdx] = n;
+      // 2. 自动跳到下一个**空的**槽
+      var nextEmpty = -1;
+      for (var i = (activeIdx + 1) % 4; i !== activeIdx; i = (i + 1) % 4) {
+        if (slots[i] === null) { nextEmpty = i; break; }
       }
+      // 如果没找到空槽（说明都填满了），保持当前激活槽（方便修改）
+      if (nextEmpty !== -1) activeIdx = nextEmpty;
       renderSlots();
     }
 
