@@ -16,7 +16,7 @@
       font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
       background: radial-gradient(ellipse at top, #1e293b 0%, var(--bg) 60%);
       color: var(--ink); min-height: 100vh; display: flex; flex-direction: column;
-      align-items: center; padding: 1.5rem 1rem;
+      align-items: center; padding: 1.5rem 1rem 2rem;
     }
     h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: 0.05em; }
     h1 span { color: var(--yellow); }
@@ -25,32 +25,39 @@
     .card {
       margin-top: 1.5rem; background: linear-gradient(180deg, rgba(51,65,85,0.5), rgba(30,41,59,0.6));
       backdrop-filter: blur(10px); border: 1px solid rgba(148,163,184,0.15);
-      border-radius: 20px; padding: 1.5rem; width: 100%; max-width: 460px;
+      border-radius: 20px; padding: 1.5rem; width: 100%; max-width: 480px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
 
-    .nums { display: flex; gap: 0.8rem; justify-content: center; margin-bottom: 1.3rem; }
-    .num-input {
-      width: 78px; height: 78px; text-align: center; font-size: 2rem; font-weight: 800;
-      border: 2px solid rgba(34,211,238,0.4); border-radius: 16px;
-      background: rgba(15,23,42,0.7); color: var(--cyan); font-family: inherit;
-      outline: none; transition: border 0.2s, box-shadow 0.2s;
+    /* 4 slots where picked numbers appear */
+    .slots { display: flex; gap: 0.7rem; justify-content: center; margin-bottom: 1.2rem; }
+    .slot {
+      width: 72px; height: 72px; border-radius: 14px;
+      background: rgba(15,23,42,0.7); border: 2px dashed rgba(148,163,184,0.3);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 1.8rem; font-weight: 800; color: var(--cyan);
+      position: relative; cursor: pointer; transition: border 0.2s, transform 0.15s;
     }
-    .num-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 4px rgba(34,211,238,0.2); }
-    .num-input.invalid { border-color: var(--red); color: var(--red); }
-    .num-input.small { font-size: 1.4rem; }
+    .slot.filled { border-style: solid; border-color: var(--cyan); }
+    .slot.active { border-color: var(--yellow); box-shadow: 0 0 0 4px rgba(251,191,36,0.18); transform: translateY(-2px); }
+    .slot .pos { position: absolute; top: 4px; right: 8px; font-size: 0.65rem; color: var(--muted); font-weight: 400; }
+    .slot .clear { position: absolute; top: 4px; left: 8px; font-size: 0.7rem; color: var(--red); opacity: 0; transition: opacity 0.15s; }
+    .slot.filled .clear { opacity: 1; }
 
-    .ops-row {
-      display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;
-      margin-bottom: 1.2rem;
+    /* number pad 1..13 */
+    .numpad {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.45rem;
+      margin-bottom: 1.1rem;
     }
-    .op-btn {
-      padding: 0.5rem 1rem; border-radius: 10px; border: 1px solid rgba(148,163,184,0.2);
-      background: rgba(15,23,42,0.5); color: var(--muted); cursor: pointer; font-size: 0.8rem;
-      transition: all 0.15s;
+    .num {
+      padding: 0.55rem 0; border-radius: 10px; border: 1px solid rgba(34,211,238,0.3);
+      background: rgba(15,23,42,0.55); color: var(--ink);
+      font-size: 1.05rem; font-weight: 700; cursor: pointer; font-family: inherit;
+      transition: transform 0.1s, background 0.15s;
     }
-    .op-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-    .op-btn.active { background: var(--cyan); color: var(--bg); border-color: var(--cyan); font-weight: 700; }
+    .num:hover { background: rgba(34,211,238,0.12); }
+    .num:active { transform: scale(0.93); }
+    .num.used { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 
     .btns { display: flex; gap: 0.7rem; }
     button.main {
@@ -66,92 +73,158 @@
     .result {
       margin-top: 1.3rem; border-radius: 14px; padding: 1rem;
       background: rgba(15,23,42,0.6); border: 1px dashed rgba(148,163,184,0.2);
-      min-height: 60px; font-size: 0.95rem;
+      min-height: 60px; font-size: 0.92rem;
     }
     .result .ok { color: var(--green); font-weight: 700; font-size: 1rem; }
     .result .bad { color: var(--red); font-weight: 700; }
     .result ul { margin-top: 0.5rem; padding-left: 1.2rem; }
-    .result li { margin: 0.3rem 0; color: var(--cyan); font-family: "Menlo", monospace; font-size: 0.85rem; }
+    .result li { margin: 0.3rem 0; color: var(--cyan); font-family: "Menlo", monospace; font-size: 0.82rem; }
+    .result .more { color: var(--muted); font-size: 0.82rem; margin-top: 0.5rem; }
 
-    .explain { margin-top: 1rem; color: var(--muted); font-size: 0.78rem; line-height: 1.6; text-align: center; }
-    .explain b { color: var(--yellow); }
+    .rules {
+      margin-top: 1.3rem; padding-top: 1rem; border-top: 1px dashed rgba(148,163,184,0.2);
+      color: var(--muted); font-size: 0.78rem; line-height: 1.8; text-align: center;
+    }
+    .rules b { color: var(--yellow); }
 
-    @media (max-width: 380px) {
-      .num-input { width: 68px; height: 68px; font-size: 1.6rem; }
+    @media (max-width: 420px) {
+      .slot { width: 62px; height: 62px; font-size: 1.5rem; }
+      .numpad { grid-template-columns: repeat(5, 1fr); gap: 0.35rem; }
+      .num { padding: 0.5rem 0; font-size: 0.95rem; }
+    }
+    @media (max-width: 320px) {
+      .numpad { grid-template-columns: repeat(4, 1fr); }
     }
   </style>
 </head>
 <body>
   <h1><span>24</span> 点小游戏</h1>
-  <div class="sub">用加减乘除把 4 个数算出 24</div>
+  <div class="sub">用 1–13 四个数算出 24</div>
 
   <div class="card">
-    <div class="nums">
-      <input class="num-input" id="n0" type="text" inputmode="numeric" maxlength="3">
-      <input class="num-input" id="n1" type="text" inputmode="numeric" maxlength="3">
-      <input class="num-input" id="n2" type="text" inputmode="numeric" maxlength="3">
-      <input class="num-input" id="n3" type="text" inputmode="numeric" maxlength="3">
+    <div class="slots" id="slots">
+      <div class="slot" data-idx="0"><span class="pos">1</span><span class="clear" title="清空">✕</span></div>
+      <div class="slot" data-idx="1"><span class="pos">2</span><span class="clear" title="清空">✕</span></div>
+      <div class="slot" data-idx="2"><span class="pos">3</span><span class="clear" title="清空">✕</span></div>
+      <div class="slot" data-idx="3"><span class="pos">4</span><span class="clear" title="清空">✕</span></div>
     </div>
 
-    <div class="ops-row">
-      <button class="op-btn" data-op="easy">简单 (1-10)</button>
-      <button class="op-btn active" data-op="normal">普通 (1-13)</button>
-      <button class="op-btn" data-op="hard">困难 (1-20)</button>
-    </div>
+    <div class="numpad" id="numpad"></div>
 
     <div class="btns">
       <button class="main rand" id="randBtn">🎲 随机出题</button>
       <button class="main solve" id="solveBtn" disabled>💡 查看答案</button>
     </div>
 
-    <div class="result" id="result">随机一个题目开始吧~</div>
+    <div class="result" id="result">点 1–13 四个数字，或直接抽一题~</div>
 
-    <div class="explain">
-      规则：把 4 个数<strong>全部用上</strong>，用 <b>+ - × ÷</b> 和括号组合算出 24。<br>
-      点「🎲 随机出题」抽题，或自己在方框里<strong>手动输入</strong> 4 个正整数后点「查看答案」。
+    <div class="rules">
+      <b>游戏规则</b>：把 4 个数<strong>全部用上</strong>，用 <b>+ − × ÷</b> 和括号组合算出 24。<br>
+      1. 点击顶部空白格激活，再点下方数字填入（点格子里的 ✕ 可单独清空）；<br>
+      2. 想省劲就点「🎲 随机出题」，抽到的题目保证有解；<br>
+      3. 填完或抽完，点「💡 查看答案」可以看到所有不同解法。
     </div>
   </div>
 
   <script>
   (function () {
-    var ops = ['+', '-', '*', '/'];
-    var opLevel = 'normal';
-    var inputs = [0,1,2,3].map(function (i) { return document.getElementById('n'+i); });
+    var MAX = 13;
+    var slots = [null, null, null, null];
+    var activeIdx = 0;
+    var slotEls, numpadEl, resultEl, solveBtn, randBtn;
 
-    // ---- 24 solver ----
-    function solve24(nums) {
-      // 递归枚举所有排列 + 所有运算符组合 + 所有括号位置
-      // 返回数组（可能有多个解）
-      var results = [];
+    function renderSlots() {
+      slotEls.forEach(function (el, i) {
+        el.classList.toggle('filled', slots[i] !== null);
+        el.classList.toggle('active', i === activeIdx);
+        el.childNodes.forEach(function (n) {
+          if (n.nodeType === 3) n.remove();
+        });
+        if (slots[i] !== null) el.appendChild(document.createTextNode(slots[i]));
+      });
+      renderNumpad();
+      updateSolve();
+    }
+    function renderNumpad() {
+      var used = {};
+      slots.forEach(function (v) { if (v !== null) used[v] = true; });
+      numpadEl.querySelectorAll('.num').forEach(function (b) {
+        b.classList.toggle('used', !!used[parseInt(b.dataset.n, 10)]);
+      });
+    }
+    function updateSolve() {
+      solveBtn.disabled = slots.some(function (v) { return v === null; });
+    }
 
-      function combo(arr) {
-        if (arr.length === 1) return [arr];
-        var out = [];
-        for (var i = 0; i < arr.length; i++) {
-          var rest = arr.slice(0, i).concat(arr.slice(i+1));
-          combo(rest).forEach(function (c) { out.push([arr[i]].concat(c)); });
-        }
-        return out;
+    function pickSlot(idx) {
+      activeIdx = idx;
+      renderSlots();
+    }
+    function clearSlot(idx) {
+      slots[idx] = null;
+      renderSlots();
+    }
+    function setNumber(n) {
+      // fill the first null slot, or replace currently active
+      if (slots[activeIdx] === null) {
+        slots[activeIdx] = n;
+        // auto-advance to next empty slot
+        for (var i = 0; i < 4; i++) if (slots[i] === null) { activeIdx = i; break; }
+      } else {
+        // if current active is filled, pick the next empty one
+        var filled = slots.indexOf(null);
+        if (filled === -1) { slots[activeIdx] = n; }
+        else { activeIdx = filled; slots[activeIdx] = n; }
+      }
+      renderSlots();
+    }
+
+    function buildUI() {
+      slotEls = document.querySelectorAll('.slot');
+      slotEls.forEach(function (el) {
+        var idx = parseInt(el.dataset.idx, 10);
+        el.addEventListener('click', function (e) {
+          if (e.target.classList.contains('clear')) { clearSlot(idx); return; }
+          pickSlot(idx);
+        });
+      });
+
+      numpadEl = document.getElementById('numpad');
+      for (var i = 1; i <= MAX; i++) {
+        var b = document.createElement('button');
+        b.className = 'num';
+        b.dataset.n = i;
+        b.textContent = i;
+        b.addEventListener('click', function () { setNumber(parseInt(this.dataset.n, 10)); });
+        numpadEl.appendChild(b);
       }
 
+      resultEl = document.getElementById('result');
+      solveBtn = document.getElementById('solveBtn');
+      randBtn = document.getElementById('randBtn');
+
+      solveBtn.addEventListener('click', solveAndShow);
+      randBtn.addEventListener('click', randomFill);
+    }
+
+    // ---- 24 solver ----
+    var OPS = ['+', '-', '*', '/'];
+    function solve24(nums) {
+      var results = [];
       function expr(a, b, op) {
         if (op === '+') return { v: a.v + b.v, s: '(' + a.s + ' + ' + b.s + ')' };
         if (op === '-') return { v: a.v - b.v, s: '(' + a.s + ' - ' + b.s + ')' };
         if (op === '*') return { v: a.v * b.v, s: '(' + a.s + ' × ' + b.s + ')' };
-        if (op === '/') {
-          if (Math.abs(b.v) < 1e-9) return null;
-          return { v: a.v / b.v, s: '(' + a.s + ' ÷ ' + b.s + ')' };
-        }
+        if (op === '/') { if (Math.abs(b.v) < 1e-9) return null; return { v: a.v / b.v, s: '(' + a.s + ' ÷ ' + b.s + ')' }; }
         return null;
       }
-
       function compute(list) {
         if (list.length === 1) return [list[0]];
         var out = [];
         for (var i = 0; i < list.length - 1; i++) {
-          for (var j = i+1; j < list.length; j++) {
-            for (var k = 0; k < ops.length; k++) {
-              var r = expr(list[i], list[j], ops[k]);
+          for (var j = i + 1; j < list.length; j++) {
+            for (var k = 0; k < OPS.length; k++) {
+              var r = expr(list[i], list[j], OPS[k]);
               if (r === null) continue;
               var rest = [];
               for (var m = 0; m < list.length; m++) if (m !== i && m !== j) rest.push(list[m]);
@@ -162,113 +235,77 @@
         }
         return out;
       }
-
-      var perms = combo(nums.map(function (x) { return { v: x, s: String(x) }; }));
-      var seen = {};
-      for (var p = 0; p < perms.length; p++) {
-        var all = compute(perms[p]);
-        for (var q = 0; q < all.length; q++) {
-          if (Math.abs(all[q].v - 24) < 1e-6 && !seen[all[q].s]) {
-            seen[all[q].s] = true;
-            results.push(all[q].s);
-          }
+      // unique permutations
+      var sorted = nums.slice().sort(function (a, b) { return a - b; });
+      var perms = [], seenP = {};
+      function perm(arr, used, cur) {
+        if (cur.length === 4) {
+          var key = cur.join(',');
+          if (!seenP[key]) { seenP[key] = true; perms.push(cur.slice()); }
+          return;
+        }
+        for (var i = 0; i < 4; i++) {
+          if (used[i]) continue;
+          used[i] = true; cur.push(arr[i]);
+          perm(arr, used, cur);
+          cur.pop(); used[i] = false;
         }
       }
+      perm(sorted, [false,false,false,false], []);
+
+      var seen = {};
+      perms.forEach(function (p) {
+        var list = p.map(function (v) { return { v: v, s: String(v) }; });
+        compute(list).forEach(function (r) {
+          if (Math.abs(r.v - 24) < 1e-6 && !seen[r.s]) { seen[r.s] = true; results.push(r.s); }
+        });
+      });
       return results;
     }
 
-    // ---- UI ----
-    function setNums(arr) {
-      arr.forEach(function (n, i) {
-        inputs[i].value = n;
-        inputs[i].classList.remove('invalid', 'small');
-        if (String(n).length >= 3) inputs[i].classList.add('small');
-      });
-      updateSolveState();
-      document.getElementById('result').textContent = '算一算吧~';
-    }
-
-    function updateSolveState() {
-      var ok = inputs.every(function (inp) {
-        var v = parseInt(inp.value, 10);
-        return !isNaN(v) && v > 0 && v <= 99;
-      });
-      document.getElementById('solveBtn').disabled = !ok;
-    }
-
-    function getNums() {
-      return inputs.map(function (inp) { return parseInt(inp.value, 10); });
-    }
-
-    function randomNums() {
-      var max = opLevel === 'easy' ? 10 : opLevel === 'hard' ? 20 : 13;
-      for (var tries = 0; tries < 500; tries++) {
-        var a = [], solutions;
-        for (var i = 0; i < 4; i++) a.push(1 + Math.floor(Math.random() * max));
-        solutions = solve24(a);
-        if (solutions.length > 0) return a;
-      }
-      return [2,3,4,5];
-    }
-
-    function showResult() {
-      var nums = getNums();
-      var bad = [];
-      nums.forEach(function (v, i) {
-        if (isNaN(v) || v <= 0 || v > 99) { bad.push(i); inputs[i].classList.add('invalid'); }
-        else inputs[i].classList.remove('invalid');
-      });
-      if (bad.length) {
-        document.getElementById('result').innerHTML = '<span class="bad">请在 4 个方框里各填一个 1-99 的整数</span>';
-        return;
-      }
-      var sols = solve24(nums);
-      var r = document.getElementById('result');
-      if (sols.length === 0) {
-        r.innerHTML = '<span class="bad">😢 这 4 个数<strong>没有解</strong>（24 点里大约 1/15 的情况无解），换一组试试？</span>';
-      } else {
-        var html = '<span class="ok">✨ 找到 ' + sols.length + ' 种解：</span><ul>';
-        // 去重 + 限制 8 条
-        var shown = {};
-        var count = 0;
-        for (var i = 0; i < sols.length && count < 8; i++) {
-          // 规范化：交换律 + 结合律的不同括号会产生同解的等价形式，简单过滤一下
-          var key = sols[i].replace(/\s/g,'').replace(/×|\*/g,'*').replace(/÷|\//g,'/');
-          if (shown[key]) continue;
-          shown[key] = true; count++;
-          html += '<li>' + sols[i] + ' = 24</li>';
+    function randomFill() {
+      for (var tries = 0; tries < 2000; tries++) {
+        var a = [];
+        for (var i = 0; i < 4; i++) a.push(1 + Math.floor(Math.random() * MAX));
+        if (solve24(a).length > 0) {
+          slots = a.slice();
+          activeIdx = 0;
+          renderSlots();
+          resultEl.textContent = '算一算吧~';
+          return;
         }
-        if (sols.length > count) html += '<li style="color:var(--muted);">……还有 ' + (sols.length - count) + ' 种</li>';
-        html += '</ul>';
-        r.innerHTML = html;
       }
+      // fallback (very unlikely with 1-13)
+      slots = [3, 3, 8, 3]; activeIdx = 0; renderSlots();
     }
 
-    inputs.forEach(function (inp) {
-      inp.addEventListener('input', function () {
-        this.value = this.value.replace(/[^0-9]/g, '');
-        if (parseInt(this.value, 10) > 99) this.value = '99';
-        this.classList.remove('invalid', 'small');
-        if (this.value.length >= 3) this.classList.add('small');
-        updateSolveState();
-      });
-    });
+    function solveAndShow() {
+      var nums = slots.slice();
+      resultEl.textContent = '计算中...';
+      setTimeout(function () {
+        var sols = solve24(nums);
+        if (sols.length === 0) {
+          resultEl.innerHTML = '<span class="bad">😢 这 4 个数<strong>没有解</strong>（大约每 15 组会有一组无解），换一组试试？</span>';
+        } else {
+          var seen = {};
+          var shown = [];
+          for (var i = 0; i < sols.length && shown.length < 8; i++) {
+            var norm = sols[i].replace(/\s/g,'').replace(/×/g,'*').replace(/÷/g,'/');
+            if (!seen[norm]) { seen[norm] = true; shown.push(sols[i]); }
+          }
+          var html = '<span class="ok">✨ 找到 ' + sols.length + ' 种不同解法，常见的有：</span><ul>';
+          shown.forEach(function (s) { html += '<li>' + s + ' = 24</li>'; });
+          html += '</ul>';
+          if (sols.length > shown.length) html += '<div class="more">……还有 ' + (sols.length - shown.length) + ' 种（括号位置不同算一种）</div>';
+          resultEl.innerHTML = html;
+        }
+      }, 20);
+    }
 
-    document.getElementById('randBtn').addEventListener('click', function () {
-      setNums(randomNums());
-    });
-    document.getElementById('solveBtn').addEventListener('click', showResult);
-
-    document.querySelectorAll('.op-btn').forEach(function (b) {
-      b.addEventListener('click', function () {
-        document.querySelectorAll('.op-btn').forEach(function (x) { x.classList.remove('active'); });
-        b.classList.add('active');
-        opLevel = b.getAttribute('data-op');
-      });
-    });
-
-    // 初始给一组
-    setNums([3, 3, 8, 8]);
+    buildUI();
+    // 初始给一组经典可解题
+    randomFill();
+    renderSlots();
   })();
   </script>
 </body>
