@@ -1,0 +1,30 @@
+{
+    "name": "星愿卡牌",
+    "short_name": "星愿卡牌",
+    "description": "抽卡、养成、编队、副本：纯前端卡牌养成小游戏",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#080b13",
+    "theme_color": "#0a0d16",
+    "lang": "zh-CN",
+    "icons": [
+        {
+            "src": "./icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "./icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "./icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ]
+}

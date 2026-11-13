@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#0a0d16">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="星愿卡牌">
+    <meta name="format-detection" content="telephone=no">
+    <title>星愿卡牌 · 卡牌养成</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" href="./icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./icon-180.png">
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div id="app">
+        <header class="topbar">
+            <div class="brand" id="brand" title="星愿卡牌">
+                <span class="brand-mark">✦</span>
+                <span class="brand-text">
+                    <strong>星愿卡牌</strong>
+                    <small>v0.1</small>
+                </span>
+            </div>
+            <div class="resources" id="resourceBar" aria-label="资源">
+                <button class="res" type="button" aria-label="金币">
+                    <span class="res-icon">🪙</span><span class="res-value" id="resCoins">0</span>
+                </button>
+                <button class="res" type="button" aria-label="钻石">
+                    <span class="res-icon">💎</span><span class="res-value" id="resGems">0</span>
+                </button>
+                <button class="res" type="button" aria-label="抽卡券">
+                    <span class="res-icon">🎟️</span><span class="res-value" id="resTickets">0</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="daily-strip" id="dailyStrip"></div>
+
+        <main id="view" aria-live="polite"></main>
+
+        <nav class="tabbar" id="tabbar" aria-label="主导航">
+            <button class="tab" type="button" data-action="tab" data-tab="gacha">
+                <span class="tab-icon">🔮</span><span>抽卡</span>
+            </button>
+            <button class="tab" type="button" data-action="tab" data-tab="library">
+                <span class="tab-icon">🃏</span><span>卡库</span>
+            </button>
+            <button class="tab" type="button" data-action="tab" data-tab="team">
+                <span class="tab-icon">🛡️</span><span>编队</span>
+            </button>
+            <button class="tab" type="button" data-action="tab" data-tab="stages">
+                <span class="tab-icon">⚔️</span><span>副本</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="modalRoot"></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <noscript>
+        <p class="noscript">需要开启 JavaScript 才能游玩。</p>
+    </noscript>
+
+    <script src="./game.js"></script>
+    <script>
+        if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('./sw.js').catch(function () { });
+            });
+        }
+    </script>
+</body>
+
+</html>
