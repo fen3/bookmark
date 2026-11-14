@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>潮汕狮头鹅 · 世界鹅王</title>
+    <meta name="description" content="潮汕狮头鹅的样貌、习性、生长速度与经典吃法：从饶平浮滨的原产地，到一只卤鹅的完整风味。">
+    <link rel="icon" href="./favicon.png">
+    <style>
+        :root {
+            --bg: #FFF8F1;
+            --card: #FFFFFF;
+            --ink: #3A2E2A;
+            --muted: #94857D;
+            --rule: rgba(160, 82, 45, 0.16);
+            --red: #C9302C;
+            --red2: #E4572E;
+            --gold: #E8A200;
+            --green: #3E8E5A;
+            --max: 1080px;
+            --font: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', -apple-system, sans-serif;
+            --serif: 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font);
+            color: var(--ink);
+            background:
+                radial-gradient(720px 420px at 8% -6%, rgba(242, 166, 90, 0.26), transparent 62%),
+                radial-gradient(680px 420px at 96% 4%, rgba(228, 87, 46, 0.14), transparent 58%),
+                var(--bg);
+            background-attachment: fixed;
+            line-height: 1.75;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        img { display: block; max-width: 100%; }
+
+        .wrap {
+            width: 100%;
+            max-width: var(--max);
+            margin: 0 auto;
+            padding: 1rem 1rem 3rem;
+        }
+
+        /* ---------- 顶栏 ---------- */
+        .topbar {
+            position: sticky;
+            top: 0.75rem;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.65rem 0.9rem 0.65rem 0.8rem;
+            margin-bottom: 1.6rem;
+            background: rgba(255, 255, 255, 0.82);
+            border: 2px solid var(--rule);
+            border-radius: 18px;
+            box-shadow: 0 6px 0 rgba(160, 82, 45, 0.08);
+            backdrop-filter: blur(12px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(140deg, var(--red), var(--red2));
+            color: #FFF6EC;
+            font-family: var(--serif);
+            font-size: 1.4rem;
+            font-weight: 700;
+            box-shadow: 0 4px 0 rgba(160, 40, 30, 0.28);
+        }
+
+        .brand strong {
+            display: block;
+            font-size: 1.02rem;
+            letter-spacing: 0.08em;
+        }
+
+        .brand small {
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 400;
+            letter-spacing: 0.22em;
+            color: var(--muted);
+        }
+
+        .back {
+            flex: 0 0 auto;
+            padding: 0.42rem 0.95rem;
+            border: 2px solid var(--rule);
+            border-radius: 999px;
+            background: #fff;
+            color: var(--ink);
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 3px 0 rgba(160, 82, 45, 0.12);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+        }
+
+        .back:hover { color: var(--red); transform: translateY(-1px); }
+        .back:active { transform: translateY(2px); box-shadow: none; }
+
+        /* ---------- 首屏 ---------- */
+        .hero { text-align: center; padding-top: 0.4rem; }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.24em;
+            color: var(--red);
+        }
+
+        .eyebrow::before,
+        .eyebrow::after {
+            content: '';
+            width: 26px;
+            height: 1px;
+            background: rgba(201, 48, 44, 0.4);
+        }
+
+        .hero h1 {
+            margin: 0.45rem 0 0;
+            font-family: var(--serif);
+            font-size: clamp(2.6rem, 8vw, 4.6rem);
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--red);
+            text-indent: 0.1em;
+            line-height: 1.2;
+        }
+
+        .latin {
+            margin-top: 0.3rem;
+            font-size: 0.7rem;
+            letter-spacing: 0.5em;
+            text-indent: 0.5em;
+            color: var(--muted);
+        }
+
+        .lede {
+            max-width: 34rem;
+            margin: 1rem auto 1.5rem;
+            font-size: 0.98rem;
+            color: #6d5c55;
+        }
+
+        .hero-fig {
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(201, 48, 44, 0.18);
+            border-radius: 24px;
+            background: #F3E3D3;
+            box-shadow: 0 10px 0 rgba(160, 82, 45, 0.1), 0 24px 50px -28px rgba(90, 46, 34, 0.5);
+        }
+
+        .hero-fig img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+        }
+
+        .hero-fig figcaption {
+            position: absolute;
+            left: 14px;
+            bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.42rem 0.9rem 0.42rem 0.55rem;
+            border-radius: 999px;
+            background: rgba(32, 18, 12, 0.6);
+            color: #FFF6EC;
+            font-size: 0.78rem;
+            letter-spacing: 0.06em;
+            backdrop-filter: blur(6px);
+        }
+
+        .hero-fig figcaption b {
+            display: grid;
+            place-items: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 7px;
+            background: var(--red);
+            font-family: var(--serif);
+            font-size: 0.86rem;
+        }
+
+        .stamp {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            padding: 0.32rem 0.7rem;
+            border: 2px solid rgba(255, 246, 236, 0.85);
+            border-radius: 8px;
+            background: rgba(201, 48, 44, 0.88);
+            color: #FFF6EC;
+            font-family: var(--serif);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            transform: rotate(3deg);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.7rem;
+            margin-top: 1.1rem;
+        }
+
+        .stat {
+            padding: 0.85rem 0.5rem 0.8rem;
+            border: 2px solid var(--rule);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.84);
+            box-shadow: 0 4px 0 rgba(160, 82, 45, 0.08);
+        }
+
+        .stat b {
+            display: block;
+            font-family: var(--serif);
+            font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+            color: var(--red);
+            line-height: 1.3;
+        }
+
+        .stat span {
+            display: block;
+            margin-top: 0.1rem;
+            font-size: 0.72rem;
+            color: var(--muted);
+            letter-spacing: 0.08em;
+        }
+
+        /* ---------- 锚点导航 ---------- */
+        .anchors {
+            position: sticky;
+            top: 5.1rem;
+            z-index: 15;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.55rem 0.5rem;
+            margin: 1.5rem auto 0;
+            background: rgba(255, 248, 241, 0.9);
+            border-radius: 999px;
+            backdrop-filter: blur(8px);
+        }
+
+        .anchors a {
+            padding: 0.3rem 0.85rem;
+            border: 1.5px solid var(--rule);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #7d5a4e;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-decoration: none;
+            transition: color 0.15s, background 0.15s, border-color 0.15s;
+        }
+
+        .anchors a:hover {
+            color: #fff;
+            background: linear-gradient(135deg, var(--red), var(--red2));
+            border-color: transparent;
+        }
+
+        /* ---------- 通用区块 ---------- */
+        section { padding-top: 3.2rem; }
+
+        .sec-head {
+            display: flex;
+            align-items: baseline;
+            gap: 0.75rem;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.7rem;
+            border-bottom: 2px dashed var(--rule);
+        }
+
+        .num {
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            flex: 0 0 auto;
+            border-radius: 10px;
+            background: var(--red);
+            color: #FFF6EC;
+            font-family: var(--serif);
+            font-size: 1.05rem;
+            box-shadow: 0 3px 0 rgba(160, 40, 30, 0.25);
+            align-self: center;
+        }
+
+        .sec-head h2 {
+            font-family: var(--serif);
+            font-size: clamp(1.4rem, 3.6vw, 1.85rem);
+            letter-spacing: 0.08em;
+        }
+
+        .sec-head em {
+            font-style: normal;
+            font-size: 0.74rem;
+            letter-spacing: 0.2em;
+            color: var(--muted);
+        }
+
+        /* ---------- 样貌 ---------- */
+        .look-grid {
+            display: grid;
+            grid-template-columns: 1.08fr 0.92fr;
+            gap: 1.15rem;
+            align-items: stretch;
+        }
+
+        .panel {
+            padding: 1.3rem 1.3rem 1.15rem;
+            background: rgba(255, 255, 255, 0.86);
+            border: 2px solid var(--rule);
+            border-radius: 20px;
+            box-shadow: 0 5px 0 rgba(160, 82, 45, 0.08);
+        }
+
+        .panel p + p { margin-top: 0.7rem; }
+
+        .panel .quote {
+            margin-top: 1rem;
+            padding: 0.75rem 0.9rem;
+            border-left: 4px solid var(--gold);
+            border-radius: 0 12px 12px 0;
+            background: rgba(232, 162, 0, 0.1);
+            font-family: var(--serif);
+            font-size: 0.95rem;
+            color: #6b4a00;
+            letter-spacing: 0.04em;
+        }
+
+        .figure {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 2px solid var(--rule);
+            border-radius: 20px;
+            background: var(--card);
+            box-shadow: 0 5px 0 rgba(160, 82, 45, 0.08);
+        }
+
+        .figure img {
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+            object-fit: cover;
+        }
+
+        .figure figcaption {
+            padding: 0.6rem 0.85rem;
+            border-top: 1px solid var(--rule);
+            font-size: 0.76rem;
+            color: var(--muted);
+            letter-spacing: 0.04em;
+        }
+
+        .traits {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.7rem;
+            margin-top: 0.9rem;
+        }
+
+        .trait {
+            padding: 1rem 0.9rem 0.95rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid var(--rule);
+            border-radius: 16px;
+            box-shadow: 0 4px 0 rgba(160, 82, 45, 0.07);
+            transition: transform 0.18s ease, border-color 0.18s ease;
+        }
+
+        .trait:hover {
+            transform: translateY(-3px);
+            border-color: rgba(201, 48, 44, 0.4);
+        }
+
+        .trait b {
+            display: inline-block;
+            padding: 0.1rem 0.55rem;
+            margin-bottom: 0.4rem;
+            border-radius: 6px;
+            background: rgba(201, 48, 44, 0.08);
+            color: var(--red);
+            font-family: var(--serif);
+            font-size: 0.88rem;
+            letter-spacing: 0.08em;
+        }
+
+        .trait p {
+            font-size: 0.8rem;
+            color: #7a6860;
+            line-height: 1.6;
+        }
+
+        /* ---------- 习性 ---------- */
+        .habits {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.7rem;
+        }
+
+        .habit {
+            position: relative;
+            overflow: hidden;
+            padding: 1.15rem 1.05rem 1.05rem;
+            background: rgba(255, 255, 255, 0.88);
+            border: 2px solid var(--rule);
+            border-radius: 18px;
+            box-shadow: 0 4px 0 rgba(160, 82, 45, 0.07);
+        }
+
+        .habit::after {
+            content: attr(data-glyph);
+            position: absolute;
+            right: -0.2rem;
+            bottom: -1.1rem;
+            font-family: var(--serif);
+            font-size: 4.6rem;
+            color: rgba(201, 48, 44, 0.05);
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .habit .glyph {
+            display: grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            margin-bottom: 0.55rem;
+            border-radius: 50%;
+            background: linear-gradient(140deg, rgba(232, 162, 0, 0.2), rgba(228, 87, 46, 0.16));
+            border: 1.5px solid rgba(201, 48, 44, 0.22);
+            color: var(--red);
+            font-family: var(--serif);
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .habit h3 {
+            font-size: 0.98rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .habit p {
+            position: relative;
+            z-index: 1;
+            font-size: 0.82rem;
+            color: #7a6860;
+            line-height: 1.65;
+        }
+
+        /* ---------- 生长速度 ---------- */
+        .growth {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 1.15rem;
+            align-items: stretch;
+        }
+
+        .chart-card { padding: 1.15rem 1.15rem 0.9rem; }
+
+        .chart-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .chart-head h3 { font-size: 0.98rem; letter-spacing: 0.05em; }
+
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.72rem;
+            color: var(--muted);
+        }
+
+        .legend i {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            background: linear-gradient(180deg, var(--red2), var(--red));
+        }
+
+        .chart {
+            display: flex;
+            align-items: stretch;
+            gap: clamp(6px, 2vw, 20px);
+            height: 250px;
+            padding: 1.4rem 0.2rem 0;
+            border-bottom: 2px solid var(--rule);
+        }
+
+        .col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            min-width: 0;
+        }
+
+        .col .val {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--red);
+            line-height: 1;
+            margin-bottom: 0.3rem;
+            white-space: nowrap;
+        }
+
+        .col .bar {
+            width: min(100%, 46px);
+            height: var(--h);
+            min-height: 3px;
+            border-radius: 7px 7px 3px 3px;
+            background: linear-gradient(180deg, #E4572E, #C9302C);
+            box-shadow: inset 0 -6px 12px rgba(120, 30, 20, 0.18);
+            transform: scaleY(0);
+            transform-origin: bottom;
+            transition: transform 0.85s cubic-bezier(0.22, 0.8, 0.3, 1);
+            transition-delay: var(--d, 0s);
+        }
+
+        .chart.in .bar { transform: scaleY(1); }
+
+        .axis {
+            display: flex;
+            gap: clamp(6px, 2vw, 20px);
+            padding: 0.45rem 0.2rem 0;
+        }
+
+        .axis span {
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--muted);
+            line-height: 1.3;
+        }
+
+        .note {
+            margin-top: 0.75rem;
+            font-size: 0.72rem;
+            color: #a8958a;
+        }
+
+        .table-card { padding: 1.15rem; display: flex; flex-direction: column; }
+
+        .table-card h3 { font-size: 0.98rem; letter-spacing: 0.05em; margin-bottom: 0.6rem; }
+
+        .table-scroll { overflow-x: auto; margin: 0 -0.35rem; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 300px;
+        }
+
+        th, td {
+            padding: 0.55rem 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(160, 82, 45, 0.12);
+            white-space: nowrap;
+        }
+
+        th {
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            font-weight: 700;
+            background: rgba(232, 162, 0, 0.07);
+        }
+
+        td:first-child { font-weight: 700; color: #5a2e22; }
+
+        tbody tr:last-child td { border-bottom: none; }
+
+        .table-card .tip {
+            margin-top: auto;
+            padding-top: 0.7rem;
+            font-size: 0.76rem;
+            color: #7a6860;
+            line-height: 1.6;
+        }
+
+        /* ---------- 吃法 ---------- */
+        .food-lede {
+            margin: -0.35rem 0 1.15rem;
+            font-size: 0.9rem;
+            color: #6d5c55;
+            max-width: 46rem;
+        }
+
+        .dishes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .dish {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid var(--rule);
+            border-radius: 18px;
+            box-shadow: 0 5px 0 rgba(160, 82, 45, 0.08);
+            transition: transform 0.18s ease, border-color 0.18s ease;
+        }
+
+        .dish:hover {
+            transform: translateY(-3px);
+            border-color: rgba(201, 48, 44, 0.42);
+        }
+
+        .dish img {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+        }
+
+        .dish-body { padding: 0.85rem 0.9rem 0.95rem; }
+
+        .dish-body h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-family: var(--serif);
+            font-size: 1.05rem;
+            letter-spacing: 0.05em;
+        }
+
+        .dish-body h3 span {
+            padding: 0.05rem 0.45rem;
+            border-radius: 999px;
+            background: rgba(201, 48, 44, 0.08);
+            color: var(--red);
+            font-family: var(--font);
+            font-size: 0.64rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .dish-body p {
+            margin-top: 0.35rem;
+            font-size: 0.8rem;
+            color: #7a6860;
+            line-height: 1.65;
+        }
+
+        .parts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .parts .panel { padding: 1.05rem 1.1rem 1rem; }
+
+        .parts h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.94rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.7rem;
+        }
+
+        .parts h3::before {
+            content: '';
+            width: 4px;
+            height: 16px;
+            border-radius: 2px;
+            background: linear-gradient(180deg, var(--red2), var(--red));
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .chips span {
+            padding: 0.22rem 0.7rem;
+            border: 1px solid rgba(201, 48, 44, 0.2);
+            border-radius: 999px;
+            background: rgba(201, 48, 44, 0.06);
+            color: #7d5a4e;
+            font-size: 0.78rem;
+        }
+
+        .chips span em {
+            font-style: normal;
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        .tips {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.7rem;
+            margin-top: 0.75rem;
+        }
+
+        .tip-card {
+            padding: 0.95rem 1rem;
+            border-radius: 16px;
+            background: rgba(232, 162, 0, 0.1);
+            border: 2px dashed rgba(232, 162, 0, 0.38);
+        }
+
+        .tip-card b {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.8rem;
+            color: #7a5200;
+            letter-spacing: 0.06em;
+        }
+
+        .tip-card p {
+            font-size: 0.78rem;
+            color: #7a6244;
+            line-height: 1.6;
+        }
+
+        /* ---------- 页脚 ---------- */
+        footer {
+            margin-top: 3rem;
+            padding-top: 1.2rem;
+            border-top: 2px dashed var(--rule);
+            text-align: center;
+            font-size: 0.76rem;
+            color: var(--muted);
+            line-height: 1.9;
+        }
+
+        footer a {
+            color: var(--red);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        footer a:hover { text-decoration: underline; }
+
+        /* ---------- 入场动画 ---------- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .reveal.in { opacity: 1; transform: none; }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .reveal { opacity: 1; transform: none; transition: none; }
+            .col .bar { transform: none; transition: none; }
+        }
+
+        /* ---------- 响应式 ---------- */
+        @media (max-width: 860px) {
+            .look-grid, .growth { grid-template-columns: 1fr; }
+            .traits { grid-template-columns: 1fr 1fr; }
+            .habits { grid-template-columns: 1fr 1fr; }
+            .dishes { grid-template-columns: 1fr 1fr; }
+            .figure img { aspect-ratio: 4 / 3; }
+        }
+
+        @media (max-width: 620px) {
+            .wrap { padding: 0.7rem 0.8rem 2.4rem; }
+            .topbar { top: 0.5rem; }
+            .brand small { display: none; }
+            .stats { grid-template-columns: 1fr 1fr; }
+            .anchors { top: 4.5rem; }
+            section { padding-top: 2.6rem; }
+            .traits, .habits, .dishes, .parts, .tips { grid-template-columns: 1fr; }
+            .chart { height: 210px; }
+            .axis span { font-size: 0.62rem; }
+            .hero-fig figcaption { font-size: 0.7rem; }
+            .stamp { font-size: 0.68rem; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <header class="topbar">
+            <a class="brand" href="./index.html">
+                <span class="brand-mark">鹅</span>
+                <span>
+                    <strong>潮汕风物志</strong>
+                    <small>LION-HEAD GOOSE</small>
+                </span>
+            </a>
+            <a class="back" href="./index.html">← 返回首页</a>
+        </header>
+
+        <main>
+            <!-- 首屏 -->
+            <div class="hero">
+                <p class="eyebrow">广东 · 潮州 · 饶平</p>
+                <h1>潮汕狮头鹅</h1>
+                <p class="latin">WORLD GOOSE KING</p>
+                <p class="lede">头似狮、体如舟，我国体型最大的鹅种。三百余年养殖史，只为一只卤鹅的琥珀油亮。</p>
+
+                <figure class="hero-fig">
+                    <img src="./assets/lion-goose/hero.jpg" alt="晨光中的狮头鹅" loading="eager">
+                    <span class="stamp">世界鹅王</span>
+                    <figcaption><b>鹅</b>成年公鹅体重可达 10–12 公斤</figcaption>
+                </figure>
+
+                <div class="stats">
+                    <div class="stat"><b>10–12 kg</b><span>成年公鹅体重</span></div>
+                    <div class="stat"><b>90 天</b><span>肉鹅上市日龄</span></div>
+                    <div class="stat"><b>25–35 枚</b><span>母鹅年产蛋</span></div>
+                    <div class="stat"><b>300+ 年</b><span>潮汕养殖历史</span></div>
+                </div>
+            </div>
+
+            <nav class="anchors" aria-label="页面目录">
+                <a href="#look">样貌</a>
+                <a href="#habit">习性</a>
+                <a href="#growth">生长速度</a>
+                <a href="#food">卤鹅吃法</a>
+            </nav>
+
+            <!-- 样貌 -->
+            <section id="look">
+                <div class="sec-head">
+                    <span class="num">壹</span>
+                    <h2>样貌特征</h2>
+                    <em>APPEARANCE</em>
+                </div>
+
+                <div class="look-grid">
+                    <div class="panel reveal">
+                        <p>狮头鹅因头部肉瘤形似狮头而得名，原产于潮州市饶平县浮滨镇一带的溪河丘陵，是我国体型最大的鹅种，也是世界上少有的大型鹅种之一。</p>
+                        <p>它头大颈粗、体躯宽深呈方形，胸宽背阔，站立时昂首挺胸。头顶肉瘤与颌下咽袋发达，公鹅尤为突出，并随年龄增长继续增大；喙短而宽、呈黑色，胫与蹼粗壮，多为橙黄色。</p>
+                        <p>全身羽毛以灰褐色为主，腹部羽色较浅，翅羽硬挺。成年公鹅体重 10–12 公斤，母鹅 8–9 公斤，个别特大型公鹅可超过 15 公斤。</p>
+                        <p class="quote">“头似狮、颈如弓、体如舟、掌如桨。”——潮汕人对狮头鹅的形貌概括</p>
+                    </div>
+
+                    <figure class="figure reveal">
+                        <img src="./assets/lion-goose/head.jpg" alt="狮头鹅头部特写，头顶肉瘤明显" loading="lazy">
+                        <figcaption>头部特写：发达的肉瘤与黑色宽喙，是辨认狮头鹅最直接的特征。</figcaption>
+                    </figure>
+                </div>
+
+                <div class="traits">
+                    <div class="trait reveal">
+                        <b>头似狮</b>
+                        <p>头顶肉瘤隆起，颌下咽袋下垂，公鹅格外明显，年龄越大越显威猛。</p>
+                    </div>
+                    <div class="trait reveal">
+                        <b>体如舟</b>
+                        <p>体躯宽深近方形，胸肌饱满，颈粗而短，站姿沉稳有力。</p>
+                    </div>
+                    <div class="trait reveal">
+                        <b>羽灰褐</b>
+                        <p>全身灰褐色羽毛，腹羽浅白，翅羽坚实有光泽，耐湿耐晒。</p>
+                    </div>
+                    <div class="trait reveal">
+                        <b>掌橙黄</b>
+                        <p>喙短宽呈黑色，胫蹼粗壮、橙黄鲜亮，划水有力，善走耐牧。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 习性 -->
+            <section id="habit">
+                <div class="sec-head">
+                    <span class="num">贰</span>
+                    <h2>生活习性</h2>
+                    <em>HABITS</em>
+                </div>
+
+                <div class="habits">
+                    <article class="habit reveal" data-glyph="水">
+                        <span class="glyph">水</span>
+                        <h3>喜水善泳</h3>
+                        <p>原产地溪河池塘密布，鹅群每日下水洗浴、交配与消暑。水面活动能清洁羽毛、帮助散热，但雏鹅需先适应浅水。</p>
+                    </article>
+                    <article class="habit reveal" data-glyph="群">
+                        <span class="glyph">群</span>
+                        <h3>合群性强</h3>
+                        <p>喜结群行动，放牧时由“头鹅”带队，采食、休息、归巢步调一致。单独饲养易应激，群养更安稳。</p>
+                    </article>
+                    <article class="habit reveal" data-glyph="草">
+                        <span class="glyph">草</span>
+                        <h3>耐粗饲</h3>
+                        <p>以青草、水草、菜叶为主，搭配谷物、糠麸即可育肥。食量大、消化力强，饲料成本相对低廉。</p>
+                    </article>
+                    <article class="habit reveal" data-glyph="健">
+                        <span class="glyph">健</span>
+                        <h3>抗病耐劳</h3>
+                        <p>适应南方湿热气候，抗病力较强、耐粗放管理；但怕闷热潮湿与高密度，栏舍需通风干燥。</p>
+                    </article>
+                    <article class="habit reveal" data-glyph="鸣">
+                        <span class="glyph">鸣</span>
+                        <h3>叫声洪亮</h3>
+                        <p>警觉性高、听觉灵敏，公鹅护群意识强。陌生人或野兽靠近时会高声鸣叫，乡下常被当作“看家鹅”。</p>
+                    </article>
+                    <article class="habit reveal" data-glyph="巢">
+                        <span class="glyph">巢</span>
+                        <h3>就巢恋巢</h3>
+                        <p>母鹅就巢性强，年产蛋 25–35 枚，蛋重约 200 克，孵化期约 30–31 天。种蛋多靠母鹅自然抱孵或人工孵化。</p>
+                    </article>
+                </div>
+            </section>
+
+            <!-- 生长速度 -->
+            <section id="growth">
+                <div class="sec-head">
+                    <span class="num">叁</span>
+                    <h2>生长速度</h2>
+                    <em>GROWTH RATE</em>
+                </div>
+
+                <div class="growth">
+                    <div class="panel chart-card reveal" id="chart-card">
+                        <div class="chart-head">
+                            <h3>公鹅体重增长曲线</h3>
+                            <span class="legend"><i></i>参考体重（kg）</span>
+                        </div>
+                        <div class="chart" id="chart" role="img" aria-label="狮头鹅公鹅体重随日龄增长：出壳约0.13公斤，30日龄1.6公斤，60日龄4.2公斤，90日龄6公斤，120日龄8公斤，成年11公斤">
+                            <div class="col"><span class="val">0.13</span><span class="bar" style="--h:1.1%;--d:.05s"></span></div>
+                            <div class="col"><span class="val">1.6</span><span class="bar" style="--h:13%;--d:.15s"></span></div>
+                            <div class="col"><span class="val">4.2</span><span class="bar" style="--h:35%;--d:.25s"></span></div>
+                            <div class="col"><span class="val">6.0</span><span class="bar" style="--h:50%;--d:.35s"></span></div>
+                            <div class="col"><span class="val">8.0</span><span class="bar" style="--h:67%;--d:.45s"></span></div>
+                            <div class="col"><span class="val">11.0</span><span class="bar" style="--h:92%;--d:.55s"></span></div>
+                        </div>
+                        <div class="axis">
+                            <span>出壳</span>
+                            <span>30 日龄</span>
+                            <span>60 日龄</span>
+                            <span>90 日龄</span>
+                            <span>120 日龄</span>
+                            <span>成年</span>
+                        </div>
+                        <p class="note">※ 示意图，纵轴以 12 公斤为上限；个体体重受性别、饲料与管理影响。</p>
+                    </div>
+
+                    <div class="panel table-card reveal">
+                        <h3>各阶段体重参考</h3>
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>阶段</th>
+                                        <th>公鹅</th>
+                                        <th>母鹅</th>
+                                        <th>养殖要点</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>出壳</td>
+                                        <td>0.13 kg</td>
+                                        <td>0.13 kg</td>
+                                        <td>保温防湿，先饮水后开食</td>
+                                    </tr>
+                                    <tr>
+                                        <td>30 日龄</td>
+                                        <td>1.6 kg</td>
+                                        <td>1.5 kg</td>
+                                        <td>羽翼初成，可短时放牧</td>
+                                    </tr>
+                                    <tr>
+                                        <td>60 日龄</td>
+                                        <td>4.2 kg</td>
+                                        <td>3.8 kg</td>
+                                        <td>进入增重最快的阶段</td>
+                                    </tr>
+                                    <tr>
+                                        <td>90 日龄</td>
+                                        <td>6.0 kg</td>
+                                        <td>5.2 kg</td>
+                                        <td>多数肉鹅在此前后出栏</td>
+                                    </tr>
+                                    <tr>
+                                        <td>120 日龄</td>
+                                        <td>8.0 kg</td>
+                                        <td>6.8 kg</td>
+                                        <td>骨架定型，转入育肥或留种</td>
+                                    </tr>
+                                    <tr>
+                                        <td>成年（7–8 月）</td>
+                                        <td>10–12 kg</td>
+                                        <td>8–9 kg</td>
+                                        <td>选留种鹅，肉瘤充分发育</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="tip">狮头鹅 60–90 日龄增重最猛，在精料配青料的条件下料肉比约 2.5–3 : 1；养足 120 天以上的“老鹅”肉质更紧实，是卤鹅的上选。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 吃法 -->
+            <section id="food">
+                <div class="sec-head">
+                    <span class="num">肆</span>
+                    <h2>一只鹅的吃法</h2>
+                    <em>CHAOSHAN CUISINE</em>
+                </div>
+
+                <p class="food-lede">潮汕人讲“无鹅不成宴”，逢年过节、祭祖拜神，桌心必有一只卤鹅。澄海苏南卤鹅最负盛名：以南姜、香茅、八角、桂皮、蒜头、鱼露与冰糖熬成卤水，整鹅下锅慢火浸卤，皮亮肉香、骨里透味。</p>
+
+                <div class="dishes">
+                    <article class="dish reveal">
+                        <img src="./assets/lion-goose/dish-lu.jpg" alt="潮汕卤鹅切片拼盘" loading="lazy">
+                        <div class="dish-body">
+                            <h3>潮汕卤鹅<span>招牌</span></h3>
+                            <p>整鹅卤熟后斩件，皮色枣红透亮、肥而不腻。蘸一碟蒜泥醋，卤香与酸香相互提亮，鹅头鹅颈胶质最厚。</p>
+                        </div>
+                    </article>
+
+                    <article class="dish reveal">
+                        <img src="./assets/lion-goose/dish-rice.jpg" alt="鹅肉饭" loading="lazy">
+                        <div class="dish-body">
+                            <h3>鹅肉饭<span>日常</span></h3>
+                            <p>卤鹅片铺在热饭上，配酸菜、卤蛋，再淋一勺卤汁。肉香、饭香与卤香混在一起，是潮汕街头的招牌快餐。</p>
+                        </div>
+                    </article>
+
+                    <article class="dish reveal">
+                        <img src="./assets/lion-goose/dish-parts.jpg" alt="卤鹅掌、鹅翅与鹅肝" loading="lazy">
+                        <div class="dish-body">
+                            <h3>鹅掌 · 鹅肝<span>老饕</span></h3>
+                            <p>鹅掌鹅翅筋多胶厚，越嚼越香；狮头鹅体型大、肝叶肥厚，卤鹅肝绵密油润，是潮汕卤味里的“隐藏菜单”。</p>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="parts">
+                    <div class="panel reveal">
+                        <h3>一只鹅，从头吃到脚</h3>
+                        <div class="chips">
+                            <span><em>鹅头</em> 胶质厚</span>
+                            <span><em>鹅颈</em> 活肉香</span>
+                            <span><em>鹅掌</em> 筋道</span>
+                            <span><em>鹅翅</em> 耐嚼</span>
+                            <span><em>鹅肝</em> 绵密</span>
+                            <span><em>鹅胗</em> 爽脆</span>
+                            <span><em>鹅血</em> 嫩滑</span>
+                            <span><em>鹅肠</em> 弹牙</span>
+                        </div>
+                    </div>
+                    <div class="panel reveal">
+                        <h3>潮汕卤水的香料底子</h3>
+                        <div class="chips">
+                            <span>南姜</span>
+                            <span>香茅</span>
+                            <span>八角</span>
+                            <span>桂皮</span>
+                            <span>蒜头</span>
+                            <span>鱼露</span>
+                            <span>酱油</span>
+                            <span>冰糖</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tips">
+                    <div class="tip-card reveal">
+                        <b>怎么吃</b>
+                        <p>卤鹅讲究“热卤冷切”，放凉后逆纹切薄片，皮肉相连才够香；配蒜泥醋解腻提鲜。</p>
+                    </div>
+                    <div class="tip-card reveal">
+                        <b>怎么选</b>
+                        <p>看皮色枣红透亮、按下去有弹性、卤香自然不刺鼻；鹅掌要选筋粗皮厚的，胶质更足。</p>
+                    </div>
+                    <div class="tip-card reveal">
+                        <b>其他做法</b>
+                        <p>白切鹅蘸普宁豆酱吃本味；鹅杂滚汤撒芹菜粒与胡椒粉；鹅肉丸、鹅肉粿条则是日常小食。</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>数据综合地方志与公开养殖资料整理，仅供参考；页面图片由 AI 生成，仅作示意。</p>
+            <p><a href="./index.html">← 返回 AI 导航首页</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const revealEls = document.querySelectorAll('.reveal')
+        const chart = document.getElementById('chart')
+
+        if ('IntersectionObserver' in window) {
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return
+                    entry.target.classList.add('in')
+                    io.unobserve(entry.target)
+                })
+            }, { threshold: 0.15, rootMargin: '0px 0px -40px' })
+
+            revealEls.forEach((el) => io.observe(el))
+            if (chart) io.observe(chart)
+        } else {
+            revealEls.forEach((el) => el.classList.add('in'))
+            if (chart) chart.classList.add('in')
+        }
+    </script>
+</body>
+
+</html>
